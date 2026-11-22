@@ -1,0 +1,100 @@
+* 超链接
+
+Org 支持多种类型的超链接。
+
+** 链接格式
+
+Org 链接的基本格式：
+
+#+BEGIN_EXAMPLE
+[[URL][描述文本]]
+[[URL]]
+#+END_EXAMPLE
+
+如果省略描述，URL 将直接显示为链接。
+
+** 内部链接
+
+在文档内部链接标题：
+
+#+BEGIN_EXAMPLE
+[[*标题名称]]
+[[*标题名称][链接描述]]
+#+END_EXAMPLE
+
+链接到特定 ID：
+
+#+BEGIN_EXAMPLE
+* 目标标题
+:CUSTOM_ID: my-target
+
+[[#my-target][跳转到目标]]
+#+END_EXAMPLE
+
+** 外部链接
+
+*** 文件链接
+
+#+BEGIN_EXAMPLE
+[[file:其他文件.org]]
+[[file:其他文件.org::特定位置]]
+[[file:~/Documents/notes.org]]
+#+END_EXAMPLE
+
+*** 网页链接
+
+#+BEGIN_EXAMPLE
+[[https://orgmode.org][Org 官方网站]]
+[[https://gnu.org][GNU 项目]]
+#+END_EXAMPLE
+
+*** 邮件链接
+
+#+BEGIN_EXAMPLE
+[[mailto:user@example.com][发送邮件]]
+#+END_EXAMPLE
+
+*** 新闻链接
+
+#+BEGIN_EXAMPLE
+[[news:gnu.emacs.help]]
+[[nntp:news.gmane.io][Gmane]]
+#+END_EXAMPLE
+
+** 链接操作
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-l= | 插入或编辑链接 |
+| =C-c C-o= | 打开链接 |
+| =M-RET= | 在新窗口打开链接 |
+| =C-c M-l= | 插入存储的链接 |
+
+** 链接缩写
+
+可以定义链接缩写简化输入：
+
+#+BEGIN_EXAMPLE
+#+LINK: google https://www.google.com/search?q=%s
+#+LINK: wikipedia https://en.wikipedia.org/wiki/%s
+
+[[google:emacs][搜索 Emacs]]
+[[wikipedia:Emacs][维基百科]]
+#+END_EXAMPLE
+
+在配置文件中定义：
+
+#+BEGIN_SRC emacs-lisp
+(setq org-link-abbrev-alist
+      '(("google" . "https://www.google.com/search?q=%s")
+        ("wikipedia" . "https://en.wikipedia.org/wiki/%s")))
+#+END_SRC
+
+** 存储链接
+
+从其他缓冲区存储链接：
+
+1. 在其他缓冲区中按 =C-c l= 存储链接
+2. 在 Org 文件中按 =C-c C-l= 插入链接
+
+例如，可以从邮件、网页、代码行等位置存储链接。

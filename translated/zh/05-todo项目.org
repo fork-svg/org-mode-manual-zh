@@ -1,0 +1,150 @@
+* TODO 项目
+
+Org 模式提供了强大的 TODO 列表管理功能。
+
+** 基本 TODO 功能
+
+在任何标题行中，可以用关键字标记 TODO 项：
+
+#+BEGIN_EXAMPLE
+* TODO 编写手册
+* TODO 校对翻译
+* DONE 设置项目结构
+#+END_EXAMPLE
+
+默认关键字为 =TODO= 和 =DONE=。
+
+** 切换 TODO 状态
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-t= | 在当前状态和 DONE 之间切换 |
+| =S-LEFT= | 前一个 TODO 状态 |
+| =S-RIGHT= | 下一个 TODO 状态 |
+
+也可以直接使用数字选择状态：=C-c C-t 1= 选择第一个状态。
+
+** 扩展 TODO 关键字
+
+可以自定义多个 TODO 关键字：
+
+#+BEGIN_EXAMPLE
+#+TODO: TODO(t) WAITING(w) | DONE(d) CANCELED(c)
+#+END_EXAMPLE
+
+=|= 分隔未完成的和已完成的状态。
+
+*** TODO 关键字作为工作流状态
+
+#+BEGIN_EXAMPLE
+#+TODO: TODO IN-PROGRESS REVIEW | DONE
+#+END_EXAMPLE
+
+表示工作流程：TODO → IN-PROGRESS → REVIEW → DONE
+
+*** TODO 关键字作为类型
+
+#+BEGIN_EXAMPLE
+#+TYP_TODO: MEETING CALL EMAIL | COMPLETED
+#+END_EXAMPLE
+
+类型用于分类，不需要状态转换。
+
+** 进度记录
+
+*** 关闭条目
+
+当 TODO 项变为 DONE 时，可以记录关闭时间：
+
+#+BEGIN_EXAMPLE
+#+STARTUP: logdone
+#+END_EXAMPLE
+
+或按 =C-c C-x !== 设置：
+
+- =C-c C-x != d=：记录关闭时间
+- =C-c C-x != t=：记录时间戳
+- =C-c C-x != !=：都记录
+
+*** 跟踪 TODO 状态变化
+
+记录每次状态变化：
+
+#+BEGIN_EXAMPLE
+#+STARTUP: lognotestate
+#+END_EXAMPLE
+
+状态变化会记录在 =LOGBOOK= 抽屉中：
+
+#+BEGIN_EXAMPLE
+* DONE 任务标题
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2024-01-15 周一 10:30]
+:END:
+#+END_EXAMPLE
+
+** 优先级
+
+可以为 TODO 项设置优先级：
+
+#+BEGIN_EXAMPLE
+* TODO [#A] 高优先级任务
+* TODO [#B] 普通任务
+* TODO [#C] 低优先级任务
+#+END_EXAMPLE
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c ,= | 设置优先级 |
+| =C-c , A= | 优先级 A（最高） |
+| =C-c , B= | 优先级 B |
+| =C-c , C= | 优先级 C（最低） |
+| =C-c , ,= | 删除优先级 |
+
+** 复选框
+
+在标题下使用复选框跟踪子任务：
+
+#+BEGIN_EXAMPLE
+* TODO 大项目 [2/4]
+** DONE 任务一
+** TODO 任务二
+** TODO 任务三
+** DONE 任务四
+#+END_EXAMPLE
+
+复选框语法：
+
+#+BEGIN_EXAMPLE
+- [ ] 未完成
+- [X] 已完成
+- [-] 部分完成（自动）
+#+END_EXAMPLE
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-c= | 在复选框上切换状态 |
+| =M-S-RET= | 新建带复选框的项目 |
+
+父标题会自动显示完成进度（如 =[2/4]= 表示 4 个中的 2 个）。
+
+** TODO 依赖
+
+设置子任务依赖：
+
+#+BEGIN_EXAMPLE
+* TODO 项目 [0/2]
+:PROPERTIES:
+:BLOCKED: 真
+:END:
+** TODO 子任务一
+** TODO 子任务二
+#+END_EXAMPLE
+
+启用依赖：
+
+#+BEGIN_EXAMPLE
+(setq org-enforce-todo-dependencies t)
+#+END_EXAMPLE
+
+父任务在子任务全部完成前保持阻塞状态。
