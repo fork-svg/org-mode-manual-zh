@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>捕获与附件 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>捕获与附件</h1>
+
+<p>捕获（Capture）是 Org 模式中快速记录想法和信息的机制。附件功能则允许为条目关联外部文件。</p>
+
+<h2>捕获</h2>
+
+<p>捕获让你可以快速记录各种信息——待办事项、笔记、日记等——而无需离开当前工作。</p>
+
+<h3>捕获模板</h3>
+
+<p>捕获模板定义了记录内容的格式和目标位置。</p>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;t&quot; &quot;待办事项&quot; entry (file &quot;~/org/inbox.org&quot;)
+         &quot;* TODO %?\n  %i\n  %a&quot;)
+        (&quot;n&quot; &quot;笔记&quot; entry (file &quot;~/org/notes.org&quot;)
+         &quot;* %? :note:\n  %U\n  %i&quot;)
+        (&quot;j&quot; &quot;日记&quot; entry (file+datetree &quot;~/org/diary.org&quot;)
+         &quot;* %?\n  %U\n  %i&quot;)))
+</code></pre>
+
+<p>模板格式：<code>(键 描述 类型 目标 模板文本)</code></p>
+
+<h3>模板目标</h3>
+
+<p>模板目标指定内容保存的位置：</p>
+
+<table class="org-table">
+<tr><td>目标类型</td><td>说明</td></tr>
+</thead><tbody>
+<tr><td><code>(file "路径")</code></td><td>追加到文件末尾</td></tr>
+<tr><td><code>(file+headline "路径" "标题")</code></td><td>添加到指定标题下</td></tr>
+<tr><td><code>(file+olp "路径" "一级" "二级")</code></td><td>添加到指定大纲路径下</td></tr>
+<tr><td><code>(file+datetree "路径")</code></td><td>按日期添加到日期树中</td></tr>
+<tr><td><code>(file+function "路径" func)</code></td><td>使用自定义函数定位</td></tr>
+<tr><td><code>(clock)</code></td><td>添加到当前计时的条目</td></tr>
+<tr><td><code>(function func)</code></td><td>使用完全自定义的函数</td></tr>
+</tbody></table>
+
+<h3>模板变量</h3>
+
+<p>模板文本支持以下变量：</p>
+
+<table class="org-table">
+<tr><td>变量</td><td>含义</td></tr>
+</thead><tbody>
+<tr><td><code>%?</code></td><td>光标最终位置</td></tr>
+<tr><td><code>%t</code></td><td>时间戳（日期）</td></tr>
+<tr><td><code>%T</code></td><td>时间戳（日期和时间）</td></tr>
+<tr><td><code>%U</code></td><td>非活跃时间戳（日期和时间）</td></tr>
+<tr><td><code>%u</code></td><td>非活跃时间戳（日期）</td></tr>
+<tr><td><code>%i</code></td><td>选中区域的初始内容</td></tr>
+<tr><td><code>%a</code></td><td>当前链接（annotation）</td></tr>
+<tr><td><code>%A</code></td><td>当前链接（带描述）</td></tr>
+<tr><td><code>%l</code></td><td>原始链接</td></tr>
+<tr><td><code>%c</code></td><td>剪贴板内容</td></tr>
+<tr><td><code>%x</code></td><td>选中的文本</td></tr>
+<tr><td><code>%^{prompt}</code></td><td>提示用户输入</td></tr>
+<tr><td><code>%^t</code></td><td>提示 TODO 状态</td></tr>
+<tr><td><code>%^g</code></td><td>提示标签</td></tr>
+<tr><td><code>%^{PROP}p</code></td><td>提示属性值</td></tr>
+</tbody></table>
+
+<h3>捕获示例</h3>
+
+<h3>基本待办模板</h3>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;t&quot; &quot;待办事项&quot; entry (file+headline &quot;~/org/tasks.org&quot; &quot;收件箱&quot;)
+         &quot;* TODO %?\n  SCHEDULED: %^t\n  %a&quot;)))
+</code></pre>
+
+<h3>日记模板</h3>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;d&quot; &quot;日记条目&quot; entry (file+datetree &quot;~/org/diary.org&quot;)
+         &quot;* %?\n  创建于 %U\n\n  %i&quot;)))
+</code></pre>
+
+<h3>会议笔记模板</h3>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;m&quot; &quot;会议记录&quot; entry (file+headline &quot;~/org/meetings.org&quot; &quot;会议&quot;)
+         &quot;* 会议: %^{会议主题}\n  %T\n  参与者: %^{参与者}\n\n  ** 议程\n  %?\n\n  ** 行动项\n  - [ ] &quot;)))
+</code></pre>
+
+<h3>带标签的模板</h3>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;w&quot; &quot;工作任务&quot; entry (file+headline &quot;~/org/work.org&quot; &quot;任务&quot;)
+         &quot;* TODO %^{任务描述}\n  :PROPERTIES:\n  :CATEGORY: work\n  :Effort: %^{工作量|0:30|1:00|2:00|4:00}\n  :END:\n  :tags: %^g\n  %a&quot;)))
+</code></pre>
+
+<h3>捕获流程</h3>
+
+<p>1. 按 <code>C-c c</code> 启动捕获</p>
+<p>2. 按模板键（如 <code>t</code>）选择模板</p>
+<p>3. 在弹出的捕获缓冲区中填写内容</p>
+<p>4. 按 <code>C-c C-c</code> 确认保存</p>
+<p>5. 按 <code>C-c C-k</code> 取消</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c c</code></td><td>启动捕获</td></tr>
+<tr><td><code>C-c C-c</code></td><td>完成并保存</td></tr>
+<tr><td><code>C-c C-k</code></td><td>取消捕获</td></tr>
+<tr><td><code>C-c C-w</code></td><td>完成并重新归档</td></tr>
+<tr><td><code>C-c C-r</code></td><td>中止并返回</td></tr>
+</tbody></table>
+
+<h3>捕获模板选择</h3>
+
+<pre class="code-block code-src"><code>;; 使用数字键快速选择
+(setq org-capture-templates
+      '((&quot;1&quot; &quot;待办&quot; entry (file &quot;~/org/inbox.org&quot;)
+         &quot;* TODO %?\n  %a&quot;)
+        (&quot;2&quot; &quot;笔记&quot; entry (file &quot;~/org/notes.org&quot;)
+         &quot;* %?\n  %U&quot;)
+        (&quot;3&quot; &quot;想法&quot; entry (file &quot;~/org/ideas.org&quot;)
+         &quot;* %? :idea:\n  %U&quot;)))
+
+;; 分组显示
+(setq org-capture-templates
+      '((&quot;t&quot; &quot;待办&quot;)
+        (&quot;tt&quot; &quot;工作待办&quot; entry (file+headline &quot;~/org/work.org&quot; &quot;待办&quot;) &quot;* TODO %?&quot;)
+        (&quot;tp&quot; &quot;个人待办&quot; entry (file+headline &quot;~/org/personal.org&quot; &quot;待办&quot;) &quot;* TODO %?&quot;)
+        (&quot;n&quot; &quot;笔记&quot;)
+        (&quot;nw&quot; &quot;工作笔记&quot; entry (file &quot;~/org/work-notes.org&quot;) &quot;* %?&quot;)
+        (&quot;np&quot; &quot;个人笔记&quot; entry (file &quot;~/org/personal-notes.org&quot;) &quot;* %?&quot;)))
+</code></pre>
+
+<h3>快速捕获</h3>
+
+<p>无需选择模板，直接快速记录：</p>
+
+<pre class="code-block code-src"><code>;; 直接捕获（使用默认模板）
+(defun my-quick-capture ()
+  (interactive)
+  (org-capture nil &quot;t&quot;))  ; &quot;t&quot; 是模板键
+</code></pre>
+
+<h2>附件</h2>
+
+<p>附件功能允许为 Org 条目关联文件（图片、PDF、代码等）。</p>
+
+<h3>附件目录</h3>
+
+<p>每个条目可以有一个附件目录来存储关联文件：</p>
+
+<pre class="code-block code-src"><code>;; 设置附件目录位置
+(setq org-attach-id-dir &quot;data/&quot;)
+
+;; 或使用 ID 作为子目录
+(setq org-attach-id-dir
+      (expand-file-name &quot;data/&quot; (file-name-directory (buffer-file-name))))
+</code></pre>
+
+<h3>附件命令</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-a</code></td><td>附件命令前缀</td></tr>
+<tr><td><code>C-c C-a a</code></td><td>选择附件方法</td></tr>
+<tr><td><code>C-c C-a c</code></td><td>复制文件到附件目录</td></tr>
+<tr><td><code>C-c C-a l</code></td><td>链接文件（不复制）</td></tr>
+<tr><td><code>C-c C-a m</code></td><td>移动文件到附件目录</td></tr>
+<tr><td><code>C-c C-a n</code></td><td>添加注释到新附件</td></tr>
+<tr><td><code>C-c C-a s</code></td><td>设置附件目录</td></tr>
+<tr><td><code>C-c C-a z</code></td><td>同步附件目录</td></tr>
+<tr><td><code>C-c C-a o</code></td><td>打开附件</td></tr>
+<tr><td><code>C-c C-a f</code></td><td>在文件管理器中打开附件目录</td></tr>
+<tr><td><code>C-c C-a d</code></td><td>删除附件</td></tr>
+<tr><td><code>C-c C-a j</code></td><td>打开附件并跳转到条目</td></tr>
+</tbody></table>
+
+<h3>附件方法</h3>
+
+<h3>复制文件（<code>c</code>）</h3>
+
+<pre class="code-block code-example"><code>C-c C-a c
+选择文件: ~/Documents/report.pdf
+
+文件被复制到附件目录中。
+</code></pre>
+
+<h3>链接文件（<code>l</code>）</h3>
+
+<p>不复制文件，只创建链接：</p>
+
+<pre class="code-block code-example"><code>C-c C-a l
+选择文件: ~/Documents/report.pdf
+
+创建指向原文件的链接。
+</code></pre>
+
+<h3>移动文件（<code>m</code>）</h3>
+
+<pre class="code-block code-example"><code>C-c C-a m
+选择文件: ~/Downloads/image.png
+
+文件被移动到附件目录中。
+</code></pre>
+
+<h3>从剪贴板粘贴（<code>y</code>）</h3>
+
+<pre class="code-block code-example"><code>C-c C-a y
+从剪贴板粘贴截图（如果剪贴板包含图片）。
+</code></pre>
+
+<h3>附件 ID</h3>
+
+<p>附件使用 ID 属性来标识存储位置：</p>
+
+<pre class="code-block code-example"><code>* 项目文档
+  :PROPERTIES:
+  :ID:       abc123-def456
+  :DIR:      data/ab/c1/abc123-def456
+  :END:
+</code></pre>
+
+<h3>查看附件</h3>
+
+<p>在带有附件的条目上：</p>
+
+<pre class="code-block code-example"><code>C-c C-a o   → 打开最近的附件
+C-c C-a f   → 在文件管理器中浏览附件目录
+C-c C-a l   → 列出所有附件
+</code></pre>
+
+<h3>附件与 Git</h3>
+
+<p>可以配置 Org 自动将附件提交到 Git：</p>
+
+<pre class="code-block code-src"><code>;; 自动 git add 附件
+(add-hook 'org-attach-after-change-hook
+          (lambda (dir)
+            (when (vc-backend dir)
+              (shell-command
+               (format &quot;git add %s&quot; dir)))))
+</code></pre>
+
+<h3>附件搜索</h3>
+
+<p>可以使用标签和属性搜索带有附件的条目：</p>
+
+<pre class="code-block code-example"><code>C-c / m ATTACHMENTS
+
+或使用 agenda 搜索：
+C-c a m ATTACHMENTS
+</code></pre>
+
+<h2>捕获与附件结合</h2>
+
+<h3>带附件的捕获模板</h3>
+
+<pre class="code-block code-src"><code>(setq org-capture-templates
+      '((&quot;a&quot; &quot;带附件的笔记&quot; entry (file &quot;~/org/notes.org&quot;)
+         &quot;* %^{标题}\n  %U\n  %?\n\n  附件:\n  %(org-attach-list)&quot;)))
+</code></pre>
+
+<h3>截图捕获</h3>
+
+<pre class="code-block code-src"><code>;; 截图并捕获
+(defun my-screenshot-capture ()
+  &quot;截图并添加到当前条目。&quot;
+  (interactive)
+  (let* ((filename (format-time-string &quot;screenshot_%Y%m%d_%H%M%S.png&quot;))
+         (filepath (expand-file-name filename org-attach-id-dir)))
+    ;; 使用系统截图工具
+    (shell-command (format &quot;import %s&quot; (shell-quote-argument filepath)))
+    ;; 添加为附件
+    (org-attach-attach filepath nil 'mv)))
+</code></pre>
+
+<h2>实用配置</h2>
+
+<h3>完整的捕获和附件配置</h3>
+
+<pre class="code-block code-src"><code>;; 全局捕获快捷键
+(global-set-key (kbd &quot;C-c c&quot;) 'org-capture)
+
+;; 捕获模板
+(setq org-capture-templates
+      '((&quot;t&quot; &quot;待办事项&quot;)
+        (&quot;tt&quot; &quot;工作任务&quot; entry (file+headline &quot;~/org/work.org&quot; &quot;收件箱&quot;)
+         &quot;* TODO %^{任务}\n  SCHEDULED: %t\n  %a\n  %?&quot;)
+        (&quot;tp&quot; &quot;个人任务&quot; entry (file+headline &quot;~/org/personal.org&quot; &quot;收件箱&quot;)
+         &quot;* TODO %^{任务}\n  %t\n  %?&quot;)
+        (&quot;n&quot; &quot;笔记&quot;)
+        (&quot;nw&quot; &quot;工作笔记&quot; entry (file+headline &quot;~/org/work.org&quot; &quot;笔记&quot;)
+         &quot;* %^{标题} :note:\n  %U\n  %?\n  %a&quot;)
+        (&quot;np&quot; &quot;个人笔记&quot; entry (file+headline &quot;~/org/personal.org&quot; &quot;笔记&quot;)
+         &quot;* %^{标题} :note:\n  %U\n  %?&quot;)
+        (&quot;j&quot; &quot;日记&quot; entry (file+datetree &quot;~/org/diary.org&quot;)
+         &quot;* %?\n  %U&quot;)
+        (&quot;m&quot; &quot;会议&quot; entry (file+headline &quot;~/org/meetings.org&quot; &quot;会议记录&quot;)
+         &quot;* 会议: %^{主题}\n  %T\n  参与者: %^{参与者}\n  %?&quot;)))
+
+;; 附件设置
+(setq org-attach-id-dir &quot;data/&quot;)
+(setq org-attach-method 'cp)  ; 默认复制文件
+(setq org-attach-store-link-p t)  ; 存储链接到原文件
+
+;; 自动保存附件变更
+(add-hook 'org-attach-after-change-hook
+          (lambda (dir)
+            (message &quot;附件目录已更新: %s&quot; dir)))
+</code></pre>
+
+<h3>快速截图附加</h3>
+
+<pre class="code-block code-src"><code>;; macOS 截图
+(defun my-mac-screenshot ()
+  &quot;使用 macOS 截图并附加到当前条目。&quot;
+  (interactive)
+  (let ((file (org-attach-dir t)))
+    (shell-command &quot;screencapture -i screenshot.png&quot;)
+    (org-attach-attach &quot;screenshot.png&quot; nil 'mv)))
+
+;; Linux 截图
+(defun my-linux-screenshot ()
+  &quot;使用 Linux 截图并附加到当前条目。&quot;
+  (interactive)
+  (let* ((filename (format-time-string &quot;screenshot_%Y%m%d_%H%M%S.png&quot;))
+         (filepath (expand-file-name filename (org-attach-dir t))))
+    (shell-command (format &quot;scrot %s&quot; (shell-quote-argument filepath)))
+    (org-attach-attach filepath nil 'mv)))
+</code></pre>
+
+<h3>批量附件操作</h3>
+
+<pre class="code-block code-src"><code>(defun my-attach-directory-recursive (dir)
+  &quot;递归添加目录中所有文件为附件。&quot;
+  (interactive &quot;D选择目录: &quot;)
+  (let ((files (directory-files-recursively dir &quot;\\.*[^.]$&quot;)))
+    (dolist (file files)
+      (unless (file-directory-p file)
+        (org-attach-attach file nil 'ln)))))
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,274 @@
+* 引用处理
+
+虽然链接（参见[[file:04-超链接.org][超链接]]）通常足以从 Org 中引用外部或内部信息，但当需要引用多个目标或排版印刷出版物时，链接就有其局限性。Org 模式提供了一种更精细的标记方式来"引用"外部资源。
+
+** 基本用法
+
+例如，考虑以下 Org 模式代码片段：
+
+#+BEGIN_EXAMPLE
+#+bibliography: citationdata.bib
+
+Org 模式被多个社区使用 [cite:teaching: @orgteaching; and TeX: @orgtex]。
+[cite/author/caps:@orgtex] 使用 Org 模式简化科学出版物的写作，
+而 [cite/author/caps:@orgteaching] 则尝试使用 Org babel 改进教学。
+
+#+print_bibliography:
+#+END_EXAMPLE
+
+Org 模式将从 =#+bibliography= 数据库中收集引用元数据，并用其排版导出的文档为任意格式。例如，上面的代码片段在 ASCII 导出时输出如下：
+
+#+BEGIN_EXAMPLE
+Org 模式被多个社区使用 (teaching: Birkenkrahe, Marcus, 2023, and TeX:
+Somma, Emmanuele F, 2023)。Somma, Emmanuele F 使用 Org 模式简化
+科学出版物的写作，而 Birkenkrahe, Marcus 则尝试使用 Org babel
+改进教学。
+
+Birkenkrahe, Marcus (2023). /Teaching Data Science with Literate
+Programming Tools/, MDPI.
+
+Somma, Emmanuele F (2023). /Simplifying LaTeX with ORG-mode in Emacs/,
+TUGboat volume.
+#+END_EXAMPLE
+
+** 引用语法
+
+Org 模式中的引用使用特殊的方括号语法。基本格式为：
+
+#+BEGIN_EXAMPLE
+[cite:引用样式: @引用键]
+#+END_EXAMPLE
+
+其中：
+- =cite= 关键字标识这是一个引用
+- 样式前缀（如 =/author/caps=）控制引用的渲染方式
+- =@引用键= 对应 =#+bibliography= 文件中的条目
+
+*** 引用样式
+
+引用样式通过前缀斜杠指定，常用样式包括：
+
+| 样式                      | 功能                       |
+|--------------------------+----------------------------|
+| =[cite:@key]=            | 默认样式（通常为文本样式）  |
+| =[cite/author:@key]=     | 仅显示作者                  |
+| =[cite/author/caps:@key]=| 显示作者，首字母大写        |
+| =[cite/year:@key]=       | 仅显示年份                  |
+| =[cite/noauthor:@key]=   | 不显示作者                  |
+| =[cite/caps:@key]=       | 首字母大写                  |
+| =[cite/nocite:@key]=     | 不出现在文本中，仅出现在参考文献中 |
+
+*** 多个引用
+
+可以在一个引用标记中组合多个引用，用分号分隔：
+
+#+BEGIN_EXAMPLE
+[cite:@key1; @key2; @key3]
+#+END_EXAMPLE
+
+*** 引用前缀和后缀
+
+可以为引用添加前缀和后缀文本：
+
+#+BEGIN_EXAMPLE
+[cite:参见 @key1 第 42 页]
+[cite:@key1 第 42 页以及之后]
+#+END_EXAMPLE
+
+*** 实用示例
+
+下面展示一个完整的引用工作流程：
+
+#+BEGIN_EXAMPLE
+#+TITLE: 论文草稿
+#+AUTHOR: 张三
+#+DATE: 2024-01-15
+#+bibliography: refs.bib
+
+* 引言
+
+机器学习在近年来取得了显著进展 [cite:@goodfellow2016deep]。
+深度学习的理论基础详见 [cite/author/caps:@goodfellow2016deep]。
+
+关于卷积神经网络，请参考 [cite:@krizhevsky2012imagenet;
+@simonyan2014very; @he2016deep]。
+
+* 方法
+
+我们采用了标准的方法论 [cite/noauthor:@bishop2006pattern]。
+实验设置参考了 [cite:参见 @murphy2012machine 第 3 章]。
+
+#+print_bibliography:
+#+END_EXAMPLE
+
+** 引用功能
+
+除了导出之外，用户还可以使用补全功能搜索并插入来自参考文献的引用（通过 =org-cite-insert=）。引用也可以像普通链接一样，使用 =org-open-at-point= "跟随"它们跳转到引用元数据。
+
+*** 插入引用
+
+使用 =C-c C-x @= （=org-cite-insert=）插入引用。该命令会显示一个补全菜单，让您从参考文献中搜索并选择条目。
+
+#+BEGIN_SRC emacs-lisp
+;; 设置默认引用插入处理器
+(setq org-cite-insert-processor 'citar)
+#+END_SRC
+
+*** 跟随引用
+
+使用 =C-c C-o=（=org-open-at-point=）跟随引用时，Emacs 会跳转到对应的参考文献条目。
+
+** 引用处理器
+
+您可以使用内置或外部引用处理器来自定义引用处理的每个方面（能力，capability）。Org 模式自带了几个针对 LaTeX 导出和 BibTeX 参考文献优化的内置引用处理器（=bibtex=、=biblatex= 和 =natbib= 处理器），或者使用引用样式语言（Citation Style Language）描述的更通用格式（=csl= 处理器）。
+
+默认引用处理器是 =basic=——它适用于任意导出格式，同时识别 BibTeX 和 CSL 参考文献。更多引用处理器以 Emacs 包的形式分发。多个引用处理器可以混合使用以满足您的偏好。
+
+*** 配置引用处理器
+
+通过配置以下变量来选择每个引用能力使用的处理器：
+
+| 变量                          | 功能                                     |
+|------------------------------+------------------------------------------|
+| =org-cite-activate-processor=  | 激活（字体化、工具提示预览等）          |
+| =org-cite-follow-processor=    | 跟随（通过 =org-open-at-point= 在引用上的操作）|
+| =org-cite-insert-processor=    | 插入（通过 =org-cite-insert= 添加和编辑引用）|
+| =org-cite-export-processors=   | 导出（通过不同的库处理不同的目标格式）   |
+
+*** 实用配置示例
+
+#+BEGIN_SRC emacs-lisp
+;; 使用 citar 作为引用插入和跟随处理器
+(setq org-cite-insert-processor 'citar)
+(setq org-cite-follow-processor 'citar)
+(setq org-cite-activate-processor 'citar)
+
+;; 为不同导出格式设置不同的处理器
+(setq org-cite-export-processors
+      '((latex biblatex)
+        (html csl)
+        (ascii basic)))
+#+END_SRC
+
+*** citar 集成示例
+
+=citar= 是一个流行的引用管理包，提供了强大的补全和搜索功能：
+
+#+BEGIN_SRC emacs-lisp
+;; 安装并配置 citar
+(use-package citar
+  :custom
+  (citar-bibliography '("~/Documents/refs.bib"))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar))
+#+END_SRC
+
+** 参考文献导出处理器
+
+参考文献导出处理器控制参考文献列表在导出时的呈现方式。不同的处理器支持不同的输出格式。
+
+*** 内置处理器
+
+| 处理器     | 功能                                           |
+|-----------+------------------------------------------------|
+| =basic=    | 通用处理器，适用于所有导出格式                  |
+| =bibtex=   | 使用 BibTeX 处理 LaTeX 导出                   |
+| =biblatex= | 使用 biblatex 处理 LaTeX 导出                 |
+| =natbib=   | 使用 natbib 处理 LaTeX 导出                   |
+| =csl=      | 使用 CSL 样式处理器                           |
+
+***  bibliography 文件
+
+=#+bibliography= 关键字指定参考文献数据库文件：
+
+#+BEGIN_EXAMPLE
+#+bibliography: refs.bib
+#+bibliography: ~/Documents/refs.bib
+#+bibliography: refs.bib other-refs.bib
+#+END_EXAMPLE
+
+支持 BibTeX（=.bib=）和 CSL JSON 格式。
+
+** 打印参考文献
+
+使用 =#+print_bibliography:= 关键字在文档中插入参考文献列表。导出时，这将生成格式化的参考文献列表。
+
+#+BEGIN_EXAMPLE
+#+bibliography: refs.bib
+
+* 引言
+...
+
+* 方法
+...
+
+#+print_bibliography:
+#+END_EXAMPLE
+
+*** 自定义参考文献样式
+
+可以通过选项控制参考文献的标题和样式：
+
+#+BEGIN_EXAMPLE
+#+PRINT_BIBLIOGRAPHY: title: 参考文献
+#+END_EXAMPLE
+
+或在 Emacs Lisp 中配置：
+
+#+BEGIN_SRC emacs-lisp
+;; 自定义参考文献标题
+(setq org-cite-biblatex-options
+      "sorting=nyt,backend=biber")
+#+END_SRC
+
+** 实用工作流
+
+*** 创建 BibTeX 文件
+
+一个典型的 =refs.bib= 文件包含如下条目：
+
+#+BEGIN_EXAMPLE
+@book{goodfellow2016deep,
+  title={Deep Learning},
+  author={Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron},
+  year={2016},
+  publisher={MIT Press}
+}
+
+@article{krizhevsky2012imagenet,
+  title={ImageNet classification with deep convolutional neural networks},
+  author={Krizhevsky, Alex and Sutskever, Ilya and Hinton, Geoffrey E},
+  journal={Advances in Neural Information Processing Systems},
+  year={2012}
+}
+
+@inproceedings{simonyan2014very,
+  title={Very deep convolutional networks for large-scale image recognition},
+  author={Simonyan, Karen and Zisserman, Andrew},
+  booktitle={arXiv preprint arXiv:1409.1556},
+  year={2014}
+}
+#+END_EXAMPLE
+
+*** 从 DOI 获取引用
+
+可以使用外部工具从 DOI 获取 BibTeX 条目：
+
+#+BEGIN_SRC emacs-lisp
+;; 使用 doi-utils 包从 DOI 获取 BibTeX
+(use-package doi-utils
+  :bind
+  ("C-c d" . doi-utils-add-bibtex-entry-from-doi))
+#+END_SRC
+
+*** 在 Org 中搜索参考文献
+
+使用 =C-c C-x @= 打开引用搜索界面，可以按作者、标题、年份等搜索：
+
+#+BEGIN_EXAMPLE
+搜索: goodfellow deep learning
+结果:
+  [1] goodfellow2016deep - Deep Learning (2016)
+  [2] goodfellow2014generative - Generative Adversarial Nets (2014)
+#+END_EXAMPLE

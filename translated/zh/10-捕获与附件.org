@@ -1,0 +1,354 @@
+* 捕获与附件
+
+捕获（Capture）是 Org 模式中快速记录想法和信息的机制。附件功能则允许为条目关联外部文件。
+
+** 捕获
+
+捕获让你可以快速记录各种信息——待办事项、笔记、日记等——而无需离开当前工作。
+
+*** 捕获模板
+
+捕获模板定义了记录内容的格式和目标位置。
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("t" "待办事项" entry (file "~/org/inbox.org")
+         "* TODO %?\n  %i\n  %a")
+        ("n" "笔记" entry (file "~/org/notes.org")
+         "* %? :note:\n  %U\n  %i")
+        ("j" "日记" entry (file+datetree "~/org/diary.org")
+         "* %?\n  %U\n  %i")))
+#+END_SRC
+
+模板格式：=(键 描述 类型 目标 模板文本)=
+
+*** 模板目标
+
+模板目标指定内容保存的位置：
+
+| 目标类型 | 说明 |
+|----------+------|
+| =(file "路径")= | 追加到文件末尾 |
+| =(file+headline "路径" "标题")= | 添加到指定标题下 |
+| =(file+olp "路径" "一级" "二级")= | 添加到指定大纲路径下 |
+| =(file+datetree "路径")= | 按日期添加到日期树中 |
+| =(file+function "路径" func)= | 使用自定义函数定位 |
+| =(clock)= | 添加到当前计时的条目 |
+| =(function func)= | 使用完全自定义的函数 |
+
+*** 模板变量
+
+模板文本支持以下变量：
+
+| 变量 | 含义 |
+|------+------|
+| =%?= | 光标最终位置 |
+| =%t= | 时间戳（日期） |
+| =%T= | 时间戳（日期和时间） |
+| =%U= | 非活跃时间戳（日期和时间） |
+| =%u= | 非活跃时间戳（日期） |
+| =%i= | 选中区域的初始内容 |
+| =%a= | 当前链接（annotation） |
+| =%A= | 当前链接（带描述） |
+| =%l= | 原始链接 |
+| =%c= | 剪贴板内容 |
+| =%x= | 选中的文本 |
+| =%^{prompt}= | 提示用户输入 |
+| =%^t= | 提示 TODO 状态 |
+| =%^g= | 提示标签 |
+| =%^{PROP}p= | 提示属性值 |
+
+*** 捕获示例
+
+*** 基本待办模板
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("t" "待办事项" entry (file+headline "~/org/tasks.org" "收件箱")
+         "* TODO %?\n  SCHEDULED: %^t\n  %a")))
+#+END_SRC
+
+*** 日记模板
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("d" "日记条目" entry (file+datetree "~/org/diary.org")
+         "* %?\n  创建于 %U\n\n  %i")))
+#+END_SRC
+
+*** 会议笔记模板
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("m" "会议记录" entry (file+headline "~/org/meetings.org" "会议")
+         "* 会议: %^{会议主题}\n  %T\n  参与者: %^{参与者}\n\n  ** 议程\n  %?\n\n  ** 行动项\n  - [ ] ")))
+#+END_SRC
+
+*** 带标签的模板
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("w" "工作任务" entry (file+headline "~/org/work.org" "任务")
+         "* TODO %^{任务描述}\n  :PROPERTIES:\n  :CATEGORY: work\n  :Effort: %^{工作量|0:30|1:00|2:00|4:00}\n  :END:\n  :tags: %^g\n  %a")))
+#+END_SRC
+
+*** 捕获流程
+
+1. 按 =C-c c= 启动捕获
+2. 按模板键（如 =t=）选择模板
+3. 在弹出的捕获缓冲区中填写内容
+4. 按 =C-c C-c= 确认保存
+5. 按 =C-c C-k= 取消
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c c= | 启动捕获 |
+| =C-c C-c= | 完成并保存 |
+| =C-c C-k= | 取消捕获 |
+| =C-c C-w= | 完成并重新归档 |
+| =C-c C-r= | 中止并返回 |
+
+*** 捕获模板选择
+
+#+BEGIN_SRC emacs-lisp
+;; 使用数字键快速选择
+(setq org-capture-templates
+      '(("1" "待办" entry (file "~/org/inbox.org")
+         "* TODO %?\n  %a")
+        ("2" "笔记" entry (file "~/org/notes.org")
+         "* %?\n  %U")
+        ("3" "想法" entry (file "~/org/ideas.org")
+         "* %? :idea:\n  %U")))
+
+;; 分组显示
+(setq org-capture-templates
+      '(("t" "待办")
+        ("tt" "工作待办" entry (file+headline "~/org/work.org" "待办") "* TODO %?")
+        ("tp" "个人待办" entry (file+headline "~/org/personal.org" "待办") "* TODO %?")
+        ("n" "笔记")
+        ("nw" "工作笔记" entry (file "~/org/work-notes.org") "* %?")
+        ("np" "个人笔记" entry (file "~/org/personal-notes.org") "* %?")))
+#+END_SRC
+
+*** 快速捕获
+
+无需选择模板，直接快速记录：
+
+#+BEGIN_SRC emacs-lisp
+;; 直接捕获（使用默认模板）
+(defun my-quick-capture ()
+  (interactive)
+  (org-capture nil "t"))  ; "t" 是模板键
+#+END_SRC
+
+** 附件
+
+附件功能允许为 Org 条目关联文件（图片、PDF、代码等）。
+
+*** 附件目录
+
+每个条目可以有一个附件目录来存储关联文件：
+
+#+BEGIN_SRC emacs-lisp
+;; 设置附件目录位置
+(setq org-attach-id-dir "data/")
+
+;; 或使用 ID 作为子目录
+(setq org-attach-id-dir
+      (expand-file-name "data/" (file-name-directory (buffer-file-name))))
+#+END_SRC
+
+*** 附件命令
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-a= | 附件命令前缀 |
+| =C-c C-a a= | 选择附件方法 |
+| =C-c C-a c= | 复制文件到附件目录 |
+| =C-c C-a l= | 链接文件（不复制） |
+| =C-c C-a m= | 移动文件到附件目录 |
+| =C-c C-a n= | 添加注释到新附件 |
+| =C-c C-a s= | 设置附件目录 |
+| =C-c C-a z= | 同步附件目录 |
+| =C-c C-a o= | 打开附件 |
+| =C-c C-a f= | 在文件管理器中打开附件目录 |
+| =C-c C-a d= | 删除附件 |
+| =C-c C-a j= | 打开附件并跳转到条目 |
+
+*** 附件方法
+
+*** 复制文件（=c=）
+
+#+BEGIN_EXAMPLE
+C-c C-a c
+选择文件: ~/Documents/report.pdf
+
+文件被复制到附件目录中。
+#+END_EXAMPLE
+
+*** 链接文件（=l=）
+
+不复制文件，只创建链接：
+
+#+BEGIN_EXAMPLE
+C-c C-a l
+选择文件: ~/Documents/report.pdf
+
+创建指向原文件的链接。
+#+END_EXAMPLE
+
+*** 移动文件（=m=）
+
+#+BEGIN_EXAMPLE
+C-c C-a m
+选择文件: ~/Downloads/image.png
+
+文件被移动到附件目录中。
+#+END_EXAMPLE
+
+*** 从剪贴板粘贴（=y=）
+
+#+BEGIN_EXAMPLE
+C-c C-a y
+从剪贴板粘贴截图（如果剪贴板包含图片）。
+#+END_EXAMPLE
+
+*** 附件 ID
+
+附件使用 ID 属性来标识存储位置：
+
+#+BEGIN_EXAMPLE
+* 项目文档
+  :PROPERTIES:
+  :ID:       abc123-def456
+  :DIR:      data/ab/c1/abc123-def456
+  :END:
+#+END_EXAMPLE
+
+*** 查看附件
+
+在带有附件的条目上：
+
+#+BEGIN_EXAMPLE
+C-c C-a o   → 打开最近的附件
+C-c C-a f   → 在文件管理器中浏览附件目录
+C-c C-a l   → 列出所有附件
+#+END_EXAMPLE
+
+*** 附件与 Git
+
+可以配置 Org 自动将附件提交到 Git：
+
+#+BEGIN_SRC emacs-lisp
+;; 自动 git add 附件
+(add-hook 'org-attach-after-change-hook
+          (lambda (dir)
+            (when (vc-backend dir)
+              (shell-command
+               (format "git add %s" dir)))))
+#+END_SRC
+
+*** 附件搜索
+
+可以使用标签和属性搜索带有附件的条目：
+
+#+BEGIN_EXAMPLE
+C-c / m ATTACHMENTS
+
+或使用 agenda 搜索：
+C-c a m ATTACHMENTS
+#+END_SRC
+
+** 捕获与附件结合
+
+*** 带附件的捕获模板
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("a" "带附件的笔记" entry (file "~/org/notes.org")
+         "* %^{标题}\n  %U\n  %?\n\n  附件:\n  %(org-attach-list)")))
+#+END_SRC
+
+*** 截图捕获
+
+#+BEGIN_SRC emacs-lisp
+;; 截图并捕获
+(defun my-screenshot-capture ()
+  "截图并添加到当前条目。"
+  (interactive)
+  (let* ((filename (format-time-string "screenshot_%Y%m%d_%H%M%S.png"))
+         (filepath (expand-file-name filename org-attach-id-dir)))
+    ;; 使用系统截图工具
+    (shell-command (format "import %s" (shell-quote-argument filepath)))
+    ;; 添加为附件
+    (org-attach-attach filepath nil 'mv)))
+#+END_SRC
+
+** 实用配置
+
+*** 完整的捕获和附件配置
+
+#+BEGIN_SRC emacs-lisp
+;; 全局捕获快捷键
+(global-set-key (kbd "C-c c") 'org-capture)
+
+;; 捕获模板
+(setq org-capture-templates
+      '(("t" "待办事项")
+        ("tt" "工作任务" entry (file+headline "~/org/work.org" "收件箱")
+         "* TODO %^{任务}\n  SCHEDULED: %t\n  %a\n  %?")
+        ("tp" "个人任务" entry (file+headline "~/org/personal.org" "收件箱")
+         "* TODO %^{任务}\n  %t\n  %?")
+        ("n" "笔记")
+        ("nw" "工作笔记" entry (file+headline "~/org/work.org" "笔记")
+         "* %^{标题} :note:\n  %U\n  %?\n  %a")
+        ("np" "个人笔记" entry (file+headline "~/org/personal.org" "笔记")
+         "* %^{标题} :note:\n  %U\n  %?")
+        ("j" "日记" entry (file+datetree "~/org/diary.org")
+         "* %?\n  %U")
+        ("m" "会议" entry (file+headline "~/org/meetings.org" "会议记录")
+         "* 会议: %^{主题}\n  %T\n  参与者: %^{参与者}\n  %?")))
+
+;; 附件设置
+(setq org-attach-id-dir "data/")
+(setq org-attach-method 'cp)  ; 默认复制文件
+(setq org-attach-store-link-p t)  ; 存储链接到原文件
+
+;; 自动保存附件变更
+(add-hook 'org-attach-after-change-hook
+          (lambda (dir)
+            (message "附件目录已更新: %s" dir)))
+#+END_SRC
+
+*** 快速截图附加
+
+#+BEGIN_SRC emacs-lisp
+;; macOS 截图
+(defun my-mac-screenshot ()
+  "使用 macOS 截图并附加到当前条目。"
+  (interactive)
+  (let ((file (org-attach-dir t)))
+    (shell-command "screencapture -i screenshot.png")
+    (org-attach-attach "screenshot.png" nil 'mv)))
+
+;; Linux 截图
+(defun my-linux-screenshot ()
+  "使用 Linux 截图并附加到当前条目。"
+  (interactive)
+  (let* ((filename (format-time-string "screenshot_%Y%m%d_%H%M%S.png"))
+         (filepath (expand-file-name filename (org-attach-dir t))))
+    (shell-command (format "scrot %s" (shell-quote-argument filepath)))
+    (org-attach-attach filepath nil 'mv)))
+#+END_SRC
+
+*** 批量附件操作
+
+#+BEGIN_SRC emacs-lisp
+(defun my-attach-directory-recursive (dir)
+  "递归添加目录中所有文件为附件。"
+  (interactive "D选择目录: ")
+  (let ((files (directory-files-recursively dir "\\.*[^.]$")))
+    (dolist (file files)
+      (unless (file-directory-p file)
+        (org-attach-attach file nil 'ln)))))
+#+END_SRC

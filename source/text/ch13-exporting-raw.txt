@@ -1,0 +1,2020 @@
+================================================================================
+ORG MODE MANUAL - CHAPTER 13: EXPORTING
+Complete raw text content extracted from https://orgmode.org/manual/
+================================================================================
+
+
+================================================================================
+SECTION 1: The Export Dispatcher
+URL: https://orgmode.org/manual/The-Export-Dispatcher.html
+================================================================================
+
+The Export Dispatcher (The Org Manual)
+
+Next: Export Settings, Up: Exporting   [Contents][Index]
+
+13.1 The Export Dispatcher ¶
+
+The export dispatcher is the main interface for Org’s exports.
+A hierarchical menu presents the currently configured export formats.
+Options are shown as easy toggle switches on the same screen.
+
+Org also has a minimal prompt interface for the export dispatcher.
+When the variable 
+org-export-dispatch-use-expert-ui
+ is set to
+a non-
+nil
+ value, Org prompts in the minibuffer.  To switch back to
+the hierarchical menu, press ?.
+
+C-c C-e (
+org-export-dispatch
+) ¶
+
+Invokes the export dispatcher interface.  The options show default
+settings.  The C-u prefix argument preserves options from
+the previous export, including any subtree selections.
+
+Org exports the entire buffer by default.  If the Org buffer has an
+active region, then Org exports just that region.
+
+Within the dispatcher interface, the following key combinations can
+further alter what is exported, and how.
+
+C-a ¶
+
+Toggle asynchronous export.  Asynchronous export uses an external
+Emacs process with a specially configured initialization file to
+complete the exporting process in the background, without tying-up
+Emacs.  This is particularly useful when exporting long documents.
+
+Output from an asynchronous export is saved on the export stack.
+To view this stack, call the export dispatcher with a double
+C-u prefix argument.  If already in the export dispatcher
+menu, & displays the stack.
+
+You can make asynchronous export the default by setting
+
+org-export-in-background
+.
+
+You can set the initialization file used by the background process
+by setting 
+org-export-async-init-file
+.
+
+C-b ¶
+
+Toggle body-only export.  Useful for excluding headers and footers
+in the export.  Affects only those backend formats that have
+sections like ‘<head>...</head>’ in HTML.
+
+To make body-only export the default, customize the variable
+
+org-export-body-only
+.
+
+C-f ¶
+
+Toggle force-publishing export.  Publish functions normally only
+publish changed files (see Triggering Publication).  Forced
+publishing causes files to be published even if their timestamps do
+not indicate the file has been changed.
+
+To make forced publishing the default, customize the variable
+
+org-export-force-publishing
+.  (This is similar to
+
+org-publish-use-timestamps-flag
+, but only affects the export
+dispatcher.)
+
+C-s ¶
+
+Toggle subtree export.  When turned on, Org exports only the
+subtree starting from point position at the time the export
+dispatcher was invoked.  Org uses the top heading of this subtree
+as the document’s title.  If point is not on a heading, Org uses the
+nearest enclosing header.  If point is in the document preamble, Org
+signals an error and aborts export.
+
+To make subtree export the default, customize the variable
+
+org-export-initial-scope
+.
+
+C-v ¶
+
+Toggle visible-only export.  This is useful for exporting only
+certain parts of an Org document by adjusting the visibility of
+particular headings.  See also Sparse Trees.
+
+To make visible-only export the default, customize the variable
+
+org-export-visible-only
+.
+
+Next: Export Settings, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 2: Export Settings
+URL: https://orgmode.org/manual/Export-Settings.html
+================================================================================
+
+Export Settings (The Org Manual)
+
+Next: Table of Contents, Previous: The Export Dispatcher, Up: Exporting   [Contents][Index]
+
+13.2 Export Settings ¶
+
+Export options can be set: globally with variables; for an individual
+file by making variables buffer-local with in-buffer settings (see
+Summary of In-Buffer Settings); by setting individual keywords or
+specifying them in compact form with the ‘OPTIONS’ keyword; or for
+a tree by setting properties (see Properties and Columns).  Options
+set at a specific level override options set at a more general level.
+
+In-buffer settings may appear anywhere in the file, either directly or
+indirectly through a file included using ‘#+SETUPFILE: filename or
+URL’ syntax.  Option keyword sets tailored to a particular backend
+can be inserted from the export dispatcher (see The Export Dispatcher) using the ‘Insert template’ command by pressing
+#.  To insert keywords individually, a good way to make
+sure the keyword is correct is to type ‘#+’ and then to use
+M-TAB128 for completion.
+
+The export keywords available for every backend, and their equivalent
+global variables, include:
+
+‘AUTHOR’ ¶
+
+The document author (
+user-full-name
+).
+
+‘CREATOR’ ¶
+
+Entity responsible for output generation
+(
+org-export-creator-string
+).
+
+‘DATE’ ¶
+
+A date or a timestamp129.
+
+‘EMAIL’ ¶
+
+The email address (
+user-mail-address
+).
+
+‘LANGUAGE’ ¶
+
+Language to use for translating certain strings
+(
+org-export-default-language
+).  With ‘#+LANGUAGE: fr’, for
+example, Org translates ‘Table of contents’ to the French ‘Table des
+  matières’130.
+
+‘SELECT_TAGS’ ¶
+
+List of tags that will, if present, be selected for export.  The
+default value is 
+org-export-select-tags
+ ‘("export")’.  When a tree
+is tagged with ‘export’, Org selects that tree and its subtrees for
+export, ignoring all the other sections that do not possess the
+‘export’ tag.
+
+When selectively exporting files with ‘export’ tags set, Org does
+not export any text that appears before the first headline.
+
+Note that a file without the ‘export’ tags will export all its
+sections.
+
+To select non-default tags for export, customize
+
+org-export-select-tags
+ (globally) or add ‘#+SELECT_TAGS: tag1
+  tag2’ to the document.
+
+‘EXCLUDE_TAGS’ ¶
+
+List of tags that will be excluded from export.  The default value is
+
+org-export-exclude-tags
+ ‘("noexport")’.  When a tree is tagged
+with ‘noexport’, Org excludes that tree and its subtrees from
+export.
+
+Entries tagged with ‘noexport’ are unconditionally excluded from the
+export, even if they have an ‘export’ tag.  Even if a subtree is not
+exported, Org executes any code blocks contained there.
+
+To select non-default tags for the exclusion, customize
+
+org-export-exclude-tags
+ (globally) or add ‘#+EXCLUDE_TAGS: tag1
+  tag2’ to the document.
+
+‘TITLE’ ¶
+
+Org displays this title.  For long titles, use multiple ‘#+TITLE’
+lines.
+
+‘EXPORT_FILE_NAME’ ¶
+
+The name of the output file to be generated.  Otherwise, Org
+generates the file name based on the buffer name and the extension
+based on the backend format.
+
+The ‘OPTIONS’ keyword is a compact form.  To configure multiple
+options, use several ‘OPTIONS’ lines.  ‘OPTIONS’ recognizes the
+following arguments.
+
+'
+ ¶
+
+Toggle smart quotes (
+org-export-with-smart-quotes
+).  Depending on
+the language used, when activated, Org treats pairs of double quotes
+as primary quotes, pairs of single quotes as secondary quotes, and
+single quote marks as apostrophes.
+
+*
+ ¶
+
+Toggle emphasized text (
+org-export-with-emphasize
+).
+
+-
+ ¶
+
+Toggle conversion of special strings
+(
+org-export-with-special-strings
+).
+
+:
+ ¶
+
+Toggle fixed-width sections (
+org-export-with-fixed-width
+).
+
+<
+ ¶
+
+Toggle inclusion of time/date active/inactive stamps
+(
+org-export-with-timestamps
+).
+
+\n
+ ¶
+
+Toggles whether to preserve line breaks
+(
+org-export-preserve-breaks
+).
+
+^
+ ¶
+
+Toggle TeX-like syntax for sub- and superscripts.  If you write
+‘^:{}’, ‘a_{b}’ is interpreted, but the simple ‘a_b’ is left as it
+is (
+org-export-with-sub-superscripts
+).
+
+arch
+ ¶
+
+Configure how archived trees are exported.  When set to 
+headline
+,
+the export process skips the contents and processes only the
+headlines (
+org-export-with-archived-trees
+).
+
+author
+ ¶
+
+Toggle inclusion of author name into exported file
+(
+org-export-with-author
+).
+
+expand-links
+ ¶
+
+Toggle expansion of environment variables in file paths
+(
+org-export-expand-links
+).
+
+broken-links
+ ¶
+
+Toggles if Org should continue exporting upon finding a broken
+internal link.  When set to 
+mark
+, Org clearly marks the problem
+link in the output (
+org-export-with-broken-links
+).
+
+c
+ ¶
+
+Toggle inclusion of ‘CLOCK’ keywords (
+org-export-with-clocks
+).
+
+creator
+ ¶
+
+Toggle inclusion of creator information in the exported file
+(
+org-export-with-creator
+).
+
+d
+ ¶
+
+Toggles inclusion of drawers, or list of drawers to include, or list
+of drawers to exclude (
+org-export-with-drawers
+).
+
+date
+ ¶
+
+Toggle inclusion of a date into exported file
+(
+org-export-with-date
+).
+
+e
+ ¶
+
+Toggle inclusion of entities (
+org-export-with-entities
+).
+
+email
+ ¶
+
+Toggle inclusion of the author’s e-mail into exported file
+(
+org-export-with-email
+).
+
+f
+ ¶
+
+Toggle the inclusion of footnotes (
+org-export-with-footnotes
+).
+
+H
+ ¶
+
+Set the last headline level for export as a headline
+(
+org-export-headline-levels
+).  For descendants of that level,
+headlines are treated differently.  In most backends, they become
+list items.
+
+inline
+ ¶
+
+Toggle inclusion of inlinetasks (
+org-export-with-inlinetasks
+).
+
+num
+ ¶
+
+Toggle section-numbers (
+org-export-with-section-numbers
+).  When
+set to number N, Org numbers only those headlines at level N or
+above.  Set ‘UNNUMBERED’ property to non-
+nil
+ to disable numbering
+of heading and subheadings entirely.  Moreover, when the value is
+‘notoc’ the headline, and all its children, do not appear in the
+table of contents either (see Table of Contents).
+
+p
+ ¶
+
+Toggle export of planning information (
+org-export-with-planning
+).
+“Planning information” comes from lines located right after the
+headline and contain any combination of these cookies: ‘SCHEDULED’,
+‘DEADLINE’, or ‘CLOSED’.
+
+pri
+ ¶
+
+Toggle inclusion of priority cookies
+(
+org-export-with-priority
+).
+
+prop
+ ¶
+
+Toggle inclusion of property drawers, or list the properties to
+include (
+org-export-with-properties
+).
+
+stat
+ ¶
+
+Toggle inclusion of statistics cookies
+(
+org-export-with-statistics-cookies
+).
+
+tags
+ ¶
+
+Toggle inclusion of tags, may also be 
+not-in-toc
+
+(
+org-export-with-tags
+).
+
+tasks
+ ¶
+
+Toggle inclusion of tasks (TODO items); or 
+nil
+ to remove all
+tasks; or 
+todo
+ to remove done tasks; or list the keywords to keep
+(
+org-export-with-tasks
+).
+
+tex
+ ¶
+
+nil
+ does not export; 
+t
+ exports; 
+verbatim
+ keeps everything in
+verbatim (
+org-export-with-latex
+).
+
+timestamp
+ ¶
+
+Toggle inclusion of the creation time in the exported file
+(
+org-export-timestamp-file
+).
+
+title
+ ¶
+
+Toggle inclusion of title (
+org-export-with-title
+).
+
+toc
+ ¶
+
+Toggle inclusion of the table of contents, or set the level limit
+(
+org-export-with-toc
+).
+
+todo
+ ¶
+
+Toggle inclusion of TODO keywords into exported text
+(
+org-export-with-todo-keywords
+).
+
+|
+ ¶
+
+Toggle inclusion of tables (
+org-export-with-tables
+).
+
+When exporting subtrees, special node properties can override the
+above keywords.  These properties have an ‘EXPORT_’ prefix.  For
+example, ‘DATE’ becomes, ‘EXPORT_DATE’ when used for a specific
+subtree.  Except for ‘SETUPFILE’, all other keywords listed above
+have an ‘EXPORT_’ equivalent.
+
+If 
+org-export-allow-bind-keywords
+ is non-
+nil
+, Emacs variables can
+become buffer-local during export by using the ‘BIND’ keyword.  Its
+syntax is ‘#+BIND: variable value’.  This is particularly useful for
+in-buffer settings that cannot be changed using keywords.
+
+Footnotes
+
+(128)
+
+Many desktops intercept M-TAB to switch windows.
+Use C-M-i or ESC TAB instead.
+
+(129)
+
+The variable
+
+org-export-date-timestamp-format
+ defines how this timestamp is
+exported.
+
+(130)
+
+For export to LaTeX format—or LaTeX-related formats such as
+Beamer—, the ‘org-latex-package-alist’ variable needs further
+configuration.  See LaTeX specific export settings.
+
+Next: Table of Contents, Previous: The Export Dispatcher, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 3: Table of Contents
+URL: https://orgmode.org/manual/Table-of-Contents.html
+================================================================================
+
+Table of Contents (The Org Manual)
+
+Next: Include Files, Previous: Export Settings, Up: Exporting   [Contents][Index]
+
+13.3 Table of Contents ¶
+
+The table of contents includes all headlines in the document.  Its
+depth is therefore the same as the headline levels in the file.  If
+you need to use a different depth, or turn it off entirely, set the
+
+org-export-with-toc
+ variable accordingly.  You can achieve the same
+on a per-file basis, using the following ‘toc’ item in ‘OPTIONS’
+keyword:
+
+#+OPTIONS: toc:2          (only include two levels in TOC)
+#+OPTIONS: toc:nil        (no default TOC at all)
+
+Org includes both numbered and unnumbered headlines in the table of
+contents131.  If you need to exclude an unnumbered headline,
+along with all its children, set the ‘UNNUMBERED’ property to ‘notoc’
+value.
+
+* Subtree not numbered, not in table of contents either
+  :PROPERTIES:
+  :UNNUMBERED: notoc
+  :END:
+
+Org normally inserts the table of contents in front of the exported
+document.  To move the table of contents to a different location,
+first turn off the default with 
+org-export-with-toc
+ variable or with
+‘#+OPTIONS: toc:nil’.  Then insert ‘#+TOC: headlines N’ at the desired
+location(s).
+
+#+OPTIONS: toc:nil
+...
+#+TOC: headlines 2
+
+To adjust the table of contents depth for a specific section of the
+Org document, append an additional ‘local’ parameter.  This parameter
+becomes a relative depth for the current level.  The following example
+inserts a local table of contents, with direct children only.
+
+* Section
+#+TOC: headlines 1 local
+
+Note that for this feature to work properly in LaTeX export, the Org
+file requires the inclusion of the titletoc package.  Because of
+compatibility issues, titletoc has to be loaded before hyperref.
+Customize the 
+org-latex-default-packages-alist
+ variable.
+
+The following example inserts a table of contents that links to the
+children of the specified target.
+
+* Target
+  :PROPERTIES:
+  :CUSTOM_ID: TargetSection
+  :END:
+** Heading A
+** Heading B
+* Another section
+#+TOC: headlines 1 :target #TargetSection
+
+The ‘:target’ attribute is supported in HTML, Markdown, ODT, and ASCII export.
+
+Use the ‘TOC’ keyword to generate list of tables—respectively, all
+listings—with captions.
+
+#+TOC: listings
+#+TOC: tables
+
+Normally Org uses the headline for its entry in the table of contents.
+But with ‘ALT_TITLE’ property, a different entry can be specified for
+the table of contents.
+
+Footnotes
+
+(131)
+
+At the moment, some export backends do not obey this
+specification.  For example, LaTeX export excludes by default
+every unnumbered headline from the table of contents, unless you set
+the custom variable ‘org-latex-toc-include-unnumbered’ to ‘t’ or add
+‘:UNNUMBERED: toc’ to the section’s properties.
+
+Next: Include Files, Previous: Export Settings, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 4: Include Files
+URL: https://orgmode.org/manual/Include-Files.html
+================================================================================
+
+Include Files (The Org Manual)
+
+Next: Macro Replacement, Previous: Table of Contents, Up: Exporting   [Contents][Index]
+
+13.4 Include Files ¶
+
+During export, you can include the content of another file.  For
+example, to include your ‘.emacs’ file, you could use:
+
+#+INCLUDE: "~/.emacs" src emacs-lisp
+
+There are three positional arguments after the include keyword, they are:
+
+ The file name, this is the sole mandatory argument.  Org neither
+checks for correctness nor validates the content in any way.
+
+ The block name to wrap the file content in.  When this is
+‘example’, ‘export’, or ‘src’ the content is escaped by
+
+org-escape-code-in-string
+.  Arbitrary block names may be given,
+however block names starting with ‘:’ must be quoted, i.e. ‘":name"’.
+
+ The source code language to use for formatting the contents.  This is relevant
+to both ‘export’ and ‘src’ block types.
+
+If an included file is not specified as having any markup language,
+Org assumes it to be in Org format and proceeds as usual with a few
+exceptions.  Org makes the footnote labels (see Creating Footnotes)
+in the included file local to that file.  The contents of the included
+file belong to the same structure—headline, item—containing the
+‘INCLUDE’ keyword.  In particular, headlines within the file become
+children of the current section.  That behavior can be changed by
+providing an additional keyword parameter, ‘:minlevel’.  It shifts the
+headlines in the included file to become the lowest level.  For
+example, this syntax makes the included file a sibling of the current
+top-level headline:
+
+#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1
+
+Inclusion of only portions of files are specified using ranges
+parameter with ‘:lines’ keyword.  The line at the upper end of the
+range will not be included.  The start and/or the end of the range may
+be omitted to use the obvious defaults.
+
+‘#+INCLUDE: "~/.emacs" :lines "5-10"’Include lines 5 to 10, 10 excluded
+
+‘#+INCLUDE: "~/.emacs" :lines "-10"’Include lines 1 to 10, 10 excluded
+
+‘#+INCLUDE: "~/.emacs" :lines "10-"’Include lines from 10 to EOF
+
+Inclusions may specify a file-link to extract an object matched by
+
+org-link-search
+132 (see Search Options in File Links).  The
+ranges for ‘:lines’ keyword are relative to the requested element.
+Therefore,
+
+#+INCLUDE: "./paper.org::*conclusion" :lines "1-20"
+
+includes the first 20 lines of the headline named ‘conclusion’.
+
+To extract only the contents of the matched object, set
+‘:only-contents’ property to non-
+nil
+.  This omits any planning lines
+or property drawers.  For example, to include the body of the heading
+with the custom ID ‘theory’, you can use
+
+#+INCLUDE: "./paper.org::#theory" :only-contents t
+
+The following command allows navigating to the included document:
+
+C-c ' (
+org-edit-special
+) ¶
+
+Visit the included file at point.
+
+Footnotes
+
+(132)
+
+Note that 
+org-link-search-must-match-exact-headline
+ is
+locally bound to non-
+nil
+.  Therefore, 
+org-link-search
+ only matches
+headlines and named elements.
+
+Next: Macro Replacement, Previous: Table of Contents, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 5: Macro Replacement
+URL: https://orgmode.org/manual/Macro-Replacement.html
+================================================================================
+
+Macro Replacement (The Org Manual)
+
+Next: Comment Lines, Previous: Include Files, Up: Exporting   [Contents][Index]
+
+13.5 Macro Replacement ¶
+
+Macros replace text snippets during export133.  Macros are defined globally in 
+org-export-global-macros
+,
+or document-wise with the following syntax:
+
+#+MACRO: name   replacement text; $1, $2 are arguments
+
+which can be referenced using ‘{{{name(arg1, arg2)}}}’134.  For
+example
+
+#+MACRO: poem Rose is $1, violet's $2. Life's ordered: Org assists you.
+{{{poem(red,blue)}}}
+
+becomes
+
+Rose is red, violet's blue.  Life's ordered: Org assists you.
+
+As a special case, Org parses any replacement text starting with
+‘(eval’ as an Emacs Lisp expression and evaluates it accordingly.
+Within such templates, arguments become strings.  Thus, the following
+macro
+
+#+MACRO: gnustamp (eval (concat "GNU/" (capitalize $1)))
+
+turns ‘{{{gnustamp(linux)}}}’ into ‘GNU/Linux’ during export.
+
+Org recognizes macro references in following Org markup areas:
+paragraphs, headlines, verse blocks, tables cells and lists.  Org also
+recognizes macro references in keywords, such as ‘CAPTION’, ‘TITLE’,
+‘AUTHOR’, ‘DATE’, and for some backend specific export options.
+
+Org comes with following pre-defined macros:
+
+‘{{{keyword(NAME)}}}’ ¶
+
+‘{{{title}}}’
+
+‘{{{author}}}’
+
+‘{{{email}}}’
+
+The ‘keyword’ macro collects all values from NAME
+keywords throughout the buffer, separated with white space.
+‘title’, ‘author’ and ‘email’ macros are shortcuts for,
+respectively, ‘{{{keyword(TITLE)}}}’, ‘{{{keyword(AUTHOR)}}}’ and
+‘{{{keyword(EMAIL)}}}’.
+
+‘{{{date}}}’ ¶
+
+‘{{{date(FORMAT)}}}’
+
+This macro refers to the ‘DATE’ keyword.  FORMAT is an
+optional argument to the ‘date’ macro that is used only if ‘DATE’ is
+a single timestamp.  FORMAT should be a format string
+understood by 
+format-time-string
+.
+
+‘{{{time(FORMAT)}}}’ ¶
+
+‘{{{modification-time(FORMAT, VC)}}}’
+
+These macros refer to the document’s date and time of export and
+date and time of modification.  FORMAT is a string
+understood by 
+format-time-string
+.  If the second argument to the
+
+modification-time
+ macro is non-
+nil
+, Org uses ‘vc.el’ to retrieve
+the document’s modification time from the version control system.
+Otherwise, Org reads the file attributes.
+
+‘{{{input-file}}}’ ¶
+
+This macro refers to the filename of the exported file.
+
+‘{{{property(PROPERTY-NAME)}}}’ ¶
+
+‘{{{property(PROPERTY-NAME, SEARCH OPTION)}}}’
+
+This macro returns the value of property PROPERTY-NAME in
+the current entry.  If SEARCH-OPTION (see Search Options in File Links) refers to a remote entry, use it instead.
+
+‘{{{n}}}’ ¶
+
+‘{{{n(NAME)}}}’
+
+‘{{{n(NAME, ACTION)}}}’
+
+This macro implements custom counters by returning the number of
+times the macro has been expanded so far while exporting the buffer.
+You can create more than one counter using different NAME
+values.  If ACTION is ‘-’, previous value of the counter
+is held, i.e., the specified counter is not incremented.  If the
+value is a number, the specified counter is set to that value.  If
+it is any other non-empty string, the specified counter is reset
+to 1.  You may leave NAME empty to reset the default
+counter.
+
+Moreover, inline source blocks (see Structure of Code Blocks) use the
+special ‘results’ macro to mark their output.  As such, you are
+advised against re-defining it, unless you know what you are doing.
+
+The surrounding brackets can be made invisible by setting
+
+org-hide-macro-markers
+ to a non-
+nil
+ value.
+
+Org expands macros at the very beginning of the export process.
+
+Footnotes
+
+(133)
+
+The macro replacement
+can be disabled by setting 
+org-export-replace-macros
+ to nil (default
+is t).
+
+(134)
+
+Since commas separate the arguments, commas within arguments
+have to be escaped with the backslash character.  So only those
+backslash characters before a comma need escaping with another
+backslash character.
+
+Next: Comment Lines, Previous: Include Files, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 6: Comment Lines
+URL: https://orgmode.org/manual/Comment-Lines.html
+================================================================================
+
+Comment Lines (The Org Manual)
+
+Next: ASCII/Latin-1/UTF-8 export, Previous: Macro Replacement, Up: Exporting   [Contents][Index]
+
+13.6 Comment Lines ¶
+
+Lines starting with zero or more whitespace characters followed by one
+‘#’ and a whitespace are treated as comments and, as such, are not
+exported.
+
+Likewise, comment blocks ‘#+BEGIN_COMMENT’ … ‘#+END_COMMENT’ are not
+exported. 135
+
+Finally, a ‘COMMENT’ keyword at the beginning of an entry, but after
+any other keyword or priority cookie, comments out the entire subtree.
+In this case, the subtree is not exported and no code block within it
+is executed or tangled136.  The
+command below helps to change the comment status of a headline.
+
+C-c ; (
+org-toggle-comment
+) ¶
+
+Toggle the ‘COMMENT’ keyword at the beginning of an entry.
+
+Footnotes
+
+(135)
+
+Just like in Literal Examples, you need to escape
+leading ‘*’ with ‘,’ to avoid interpreting them as headings.
+
+(136)
+
+For less restrictive export limitations,
+consider using a select tag (see Export Settings) instead.
+
+
+
+================================================================================
+SECTION 7: ASCII/Latin-1/UTF-8 Export
+URL: https://orgmode.org/manual/ASCII_002fLatin_002d1_002fUTF_002d8-export.html
+================================================================================
+
+ASCII/Latin-1/UTF-8 export (The Org Manual)
+
+Next: Beamer Export, Previous: Comment Lines, Up: Exporting   [Contents][Index]
+
+13.7 ASCII/Latin-1/UTF-8 export ¶
+
+ASCII export produces an output file containing only plain ASCII
+characters.  This is the simplest and most direct text output.  It
+does not contain any Org markup.  Latin-1 and UTF-8 export use
+additional characters and symbols available in these encoding
+standards.  All three of these export formats offer the most basic of
+text output for maximum portability.
+
+On export, Org fills and justifies text according to the text width
+set in 
+org-ascii-text-width
+.
+
+Org exports links using a footnote-like style where the descriptive
+part is in the text and the link is in a note before the next heading.
+See the variable 
+org-ascii-links-to-notes
+ for details.
+
+ASCII export commands ¶
+
+C-c C-e t a (
+org-ascii-export-to-ascii
+), C-c C-e t l, C-c C-e t u ¶
+
+Export as an ASCII file with a ‘.txt’ extension.  For ‘myfile.org’,
+Org exports to ‘myfile.txt’, overwriting without warning.  For
+‘myfile.txt’, Org exports to ‘myfile.txt.txt’ in order to prevent
+data loss.
+
+C-c C-e t A (
+org-ascii-export-to-ascii
+), C-c C-e t L, C-c C-e t U ¶
+
+Export to a temporary buffer.  Does not create a file.
+
+ASCII specific export settings ¶
+
+The ASCII export backend has one extra keyword for customizing ASCII
+output.  Setting this keyword works similar to the general options
+(see Export Settings).
+
+‘SUBTITLE’ ¶
+
+The document subtitle.  For long subtitles, use multiple
+‘#+SUBTITLE’ lines in the Org file.  Org prints them on one
+continuous line, wrapping into multiple lines if necessary.
+
+Header and sectioning structure ¶
+
+Org converts the first three outline levels into headlines for ASCII
+export.  The remaining levels are turned into lists.  To change this
+cut-off point where levels become lists, see Export Settings.
+
+Quoting ASCII text ¶
+
+To insert text within the Org file by the ASCII backend, use one the
+following constructs, inline, keyword, or export block:
+
+Inline text @@ascii:and additional text@@ within a paragraph.
+
+#+ASCII: Some text
+
+#+BEGIN_EXPORT ascii
+Org exports text in this block only when using ASCII backend.
+#+END_EXPORT
+
+ASCII specific attributes ¶
+
+ASCII backend recognizes only one attribute, ‘:width’, which
+specifies the width of a horizontal rule in number of characters.  The
+keyword and syntax for specifying widths is:
+
+#+ATTR_ASCII: :width 10
+-----
+
+ASCII special blocks ¶
+
+Besides ‘#+BEGIN_CENTER’ blocks (see Paragraphs), ASCII backend has
+these two left and right justification blocks:
+
+#+BEGIN_JUSTIFYLEFT
+It's just a jump to the left...
+#+END_JUSTIFYLEFT
+
+#+BEGIN_JUSTIFYRIGHT
+...and then a step to the right.
+#+END_JUSTIFYRIGHT
+
+Next: Beamer Export, Previous: Comment Lines, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 8: Beamer Export
+URL: https://orgmode.org/manual/Beamer-Export.html
+================================================================================
+
+Beamer Export (The Org Manual)
+
+Next: HTML Export, Previous: ASCII/Latin-1/UTF-8 export, Up: Exporting   [Contents][Index]
+
+13.8 Beamer Export ¶
+
+Org uses Beamer export to convert an Org file tree structure into
+high-quality interactive slides for presentations.  Beamer is a LaTeX
+document class for creating presentations in PDF, HTML, and other
+popular display formats.
+
+We strongly recommend familiarizing yourself with Beamer terminology
+before reading the rest of this chapter.  See
+https://en.wikipedia.org/wiki/Beamer_(LaTeX) and references therein.
+
+Beamer export commands
+
+Beamer specific export settings
+
+Frames and Blocks in Beamer
+
+Beamer specific syntax
+
+Editing support
+
+A Beamer example
+
+
+
+================================================================================
+SECTION 9: HTML Export
+URL: https://orgmode.org/manual/HTML-Export.html
+================================================================================
+
+HTML Export (The Org Manual)
+
+Next: LaTeX Export, Previous: Beamer Export, Up: Exporting   [Contents][Index]
+
+13.9 HTML Export ¶
+
+Org mode contains an HTML exporter with extensive HTML formatting
+compatible with XHTML 1.0 strict standard.
+
+HTML export commands
+
+HTML specific export settings
+
+HTML doctypes
+
+HTML preamble and postamble
+
+Exporting to minimal HTML
+
+Quoting HTML tags
+
+Headlines in HTML export
+
+Links in HTML export
+
+Tables in HTML export
+
+Images in HTML export
+
+Math formatting in HTML export
+
+Text areas in HTML export
+
+CSS support
+
+JavaScript supported display of web pages
+
+
+
+================================================================================
+SECTION 10: LaTeX Export
+URL: https://orgmode.org/manual/LaTeX-Export.html
+================================================================================
+
+LaTeX Export (The Org Manual)
+
+Next: Markdown Export, Previous: HTML Export, Up: Exporting   [Contents][Index]
+
+13.10 LaTeX Export ¶
+
+The LaTeX export backend can handle complex documents, incorporate
+standard or custom LaTeX document classes, generate documents using
+alternate LaTeX engines, and produce fully linked PDF files with
+indexes, bibliographies, and tables of contents, destined for
+interactive online viewing or high-quality print publication.
+
+While the details are covered in-depth in this section, here are some
+quick references to variables for the impatient: for engines, see
+
+org-latex-compiler
+; for build sequences, see
+
+org-latex-pdf-process
+; for packages, see
+
+org-latex-default-packages-alist
+ and 
+org-latex-packages-alist
+.
+
+An important note about the LaTeX export backend: it is sensitive to
+blank lines in the Org document.  That’s because LaTeX itself depends
+on blank lines to tell apart syntactical elements, such as paragraphs.
+
+The following sections expect users to be familiar with common LaTeX
+terminology.  You may refer to https://tug.org/begin.html to get
+familiar with LaTeX basics.  Users with LaTeX installed may also run
+‘texdoc latex’ from terminal to open LaTeX introduction 141
+
+LaTeX/PDF export commands
+
+LaTeX specific export settings
+
+LaTeX header and sectioning structure
+
+Quoting LaTeX code
+
+Tables in LaTeX export
+
+Images in LaTeX export
+
+Plain lists in LaTeX export
+
+Source blocks in LaTeX export
+
+Example blocks in LaTeX export
+
+Special blocks in LaTeX export
+
+Horizontal rules in LaTeX export
+
+Verse blocks in LaTeX export
+
+Quote blocks in LaTeX export
+
+Controlling the way the table of contents is generated
+
+Footnotes
+
+(141)
+
+The
+command will open a PDF file, which is also available for download
+from https://mirrors.ctan.org/info/latex-doc-ptr/latex-doc-ptr.pdf
+
+Next: Markdown Export, Previous: HTML Export, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 11: Markdown Export
+URL: https://orgmode.org/manual/Markdown-Export.html
+================================================================================
+
+Markdown Export (The Org Manual)
+
+Next: OpenDocument Text Export, Previous: LaTeX Export, Up: Exporting   [Contents][Index]
+
+13.11 Markdown Export ¶
+
+The Markdown export backend, “md”, converts an Org file to Markdown
+format, as defined at https://daringfireball.net/projects/markdown/.
+This is the original Markdown specification, developed by John Gruber
+and Aaron Swartz.
+
+Since “md” backend is built on top of the HTML backend (see HTML Export), it converts every Org construct not defined in Markdown
+syntax, such as tables, to HTML.
+
+Do note that the original Markdown syntax has differences with other
+commonly used Markdown flavors.  See
+https://en.wikipedia.org/wiki/Markdown for more details.
+
+Markdown export commands ¶
+
+C-c C-e m m (
+org-md-export-to-markdown
+) ¶
+
+Export to a text file with Markdown syntax.  For ‘myfile.org’, Org
+exports to ‘myfile.md’, overwritten without warning.
+
+C-c C-e m M (
+org-md-export-as-markdown
+) ¶
+
+Export to a temporary buffer.  Does not create a file.
+
+C-c C-e m o ¶
+
+Export as a text file with Markdown syntax, then open it.
+
+Header and sectioning structure ¶
+
+Based on 
+org-md-headline-style
+, Markdown export can generate
+headlines of both atx and setext types.  setext limits headline
+levels to two whereas atx limits headline levels to six.  mixed
+exports headline levels one and two in setext-style, and headline
+levels three through six as atx-style headlines.  Beyond these
+limits, the export backend converts headlines to lists.  To set a
+limit to a level before the absolute limit (see Export Settings).
+
+Next: OpenDocument Text Export, Previous: LaTeX Export, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 12: OpenDocument Text Export
+URL: https://orgmode.org/manual/OpenDocument-Text-Export.html
+================================================================================
+
+OpenDocument Text Export (The Org Manual)
+
+Next: Org Export, Previous: Markdown Export, Up: Exporting   [Contents][Index]
+
+13.12 OpenDocument Text Export ¶
+
+The ODT export backend handles creating of OpenDocument Text (ODT)
+format.  Documents created by this exporter use the
+OpenDocument-v1.2 specification145
+and are compatible with LibreOffice 3.4.
+
+Pre-requisites for ODT export
+
+ODT export commands
+
+ODT specific export settings
+
+Extending ODT export
+
+Applying custom styles
+
+Links in ODT export
+
+Tables in ODT export
+
+Images in ODT export
+
+Math formatting in ODT export
+
+Labels and captions in ODT export
+
+Literal examples in ODT export
+
+Advanced topics in ODT export
+
+Footnotes
+
+(145)
+
+See
+Open
+Document Format for Office Applications (OpenDocument) Version 1.2.
+
+
+
+================================================================================
+SECTION 13: Org Export
+URL: https://orgmode.org/manual/Org-Export.html
+STATUS: FAILED TO FETCH
+================================================================================
+
+
+================================================================================
+SECTION 14: Texinfo Export
+URL: https://orgmode.org/manual/Texinfo-Export.html
+================================================================================
+
+Texinfo Export (The Org Manual)
+
+Next: iCalendar Export, Previous: Org Export, Up: Exporting   [Contents][Index]
+
+13.14 Texinfo Export ¶
+
+Texinfo export commands
+
+Texinfo specific export settings
+
+Texinfo file header
+
+Texinfo title and copyright page
+
+Info directory file
+
+Headings and sectioning structure
+
+Indices
+
+Quoting Texinfo code
+
+Plain lists in Texinfo export
+
+Tables in Texinfo export
+
+Images in Texinfo export
+
+Quotations in Texinfo export
+
+Key bindings in Texinfo export
+
+Special blocks in Texinfo export
+
+A Texinfo example
+
+
+
+================================================================================
+SECTION 15: iCalendar Export
+URL: https://orgmode.org/manual/iCalendar-Export.html
+================================================================================
+
+iCalendar Export (The Org Manual)
+
+Next: Other Built-in Backends, Previous: Texinfo Export, Up: Exporting   [Contents][Index]
+
+13.15 iCalendar Export ¶
+
+A large part of Org mode’s interoperability success is its ability to
+easily export to or import from external applications.  The iCalendar
+export backend takes calendar data from Org files and exports to the
+standard iCalendar format.
+
+By default, iCalendar export only includes headings that contain
+active timestamps or diary sexps151.
+
+If a timestamp contains a time, but doesn’t have an explicit end time
+(i.e. time range), then by default the exported event will have a
+duration of 2 hours, but this can be overridden with
+
+org-agenda-default-appointment-duration
+.
+
+The iCalendar export backend can also incorporate TODO entries based
+on the configuration of the 
+org-icalendar-include-todo
+ variable.
+The backend exports plain timestamps as ‘VEVENT’, TODO items as
+‘VTODO’, and also create events from deadlines that are in non-TODO
+items.
+
+The backend uses the deadlines and scheduling dates in Org TODO items
+for setting the start and due dates for the iCalendar TODO entry.
+Consult the 
+org-icalendar-use-deadline
+,
+
+org-icalendar-use-scheduled
+, and
+
+org-icalendar-todo-unscheduled-start
+ variables for more details.
+
+For tags on the headline, the iCalendar export backend makes them
+into iCalendar categories.  To tweak the inheritance of tags and TODO
+states, configure the variable 
+org-icalendar-categories
+.  To assign
+clock alarms based on time, configure the 
+org-icalendar-alarm-time
+
+variable.
+
+The iCalendar format standard requires globally unique identifier—or
+UID—for each entry.  The iCalendar export backend creates UIDs
+during export.  To save a copy of the UID in the Org file set the
+variable 
+org-icalendar-store-UID
+.  The backend looks for the ‘ID’
+property of the entry for reusing the same UID for subsequent
+exports.
+
+Since a single Org entry can result in multiple iCalendar
+entries—timestamp, deadline, scheduled item, or TODO item—Org adds
+prefixes to the UID, depending on which part of the Org entry
+triggered the creation of the iCalendar entry.  Prefixing ensures UIDs
+remains unique, yet enable synchronization programs trace the
+connections.
+
+C-c C-e c f (
+org-icalendar-export-to-ics
+) ¶
+
+Create iCalendar entries from the current Org buffer and store them
+in the same directory, using a file extension ‘.ics’.
+
+C-c C-e c a (
+org-icalendar-export-agenda-files
+) ¶
+
+Create iCalendar entries from Org files in 
+org-agenda-files
+ and
+store in a separate iCalendar file for each Org file.
+
+C-c C-e c c (
+org-icalendar-combine-agenda-files
+) ¶
+
+Create a combined iCalendar file from Org files in
+
+org-agenda-files
+ and write it to
+
+org-icalendar-combined-agenda-file
+ file name.
+
+The iCalendar export backend includes ‘SUMMARY’, ‘DESCRIPTION’,
+‘LOCATION’, ‘TIMEZONE’ and ‘CLASS’ properties from the Org entries
+when exporting.  To force the backend to inherit the ‘LOCATION’,
+‘TIMEZONE’ and ‘CLASS’ properties, configure the
+
+org-use-property-inheritance
+ variable.
+
+‘SUMMARY’, ‘LOCATION’, and ‘DESCRIPTION’ properties can define
+multi-line summary, location, or description using ‘<PROPERTY>+’
+syntax (see Property Syntax):
+
+* Meeting at location with multi-line address
+:PROPERTIES:
+:LOCATION:  Someplace
+:LOCATION+: Some Street 5
+:LOCATION+: 12345 Small Town
+:END:
+<2024-01-08 Mon 14:20-15:00>
+
+When Org entries do not have ‘SUMMARY’, ‘DESCRIPTION’, ‘LOCATION’ and
+‘CLASS’ properties, the iCalendar export backend derives the summary
+from the headline, and derives the description from the body of the
+Org item.  The 
+org-icalendar-include-body
+ variable limits the
+maximum number of characters of the content are turned into its
+description.
+
+The ‘TIMEZONE’ property can be used to specify a per-entry time zone,
+and is applied to any entry with timestamp information.  Time zones
+should be specified as per the IANA time zone database format, e.g.,
+‘Asia/Almaty’.  Alternately, the property value can be ‘UTC’, to force
+UTC time for this entry only.
+
+The ‘CLASS’ property can be used to specify a per-entry visibility
+class or access restrictions, and is applied to any entry with class
+information.  The iCalendar standard defines three visibility classes:
+
+‘PUBLIC’
+
+The entry is publicly visible (this is the default).
+
+‘CONFIDENTIAL’
+
+Only a limited group of clients gets access to the
+event.
+
+‘PRIVATE’
+
+The entry can be retrieved only by its owner.
+
+The server should treat unknown class properties the same as
+‘PRIVATE’.
+
+The exported iCalendar file can advise clients how often to check for
+updates.  This duration can be set globally with the
+
+org-icalendar-ttl
+ variable, or on a per-document basis with the
+‘ICAL-TTL’ keyword.  This option should be set using the iCalendar
+notation for time durations; consult the docstring of
+
+org-icalendar-ttl
+ for more details.
+
+Exporting to iCalendar format depends in large part on the
+capabilities of the destination application.  Some are more lenient
+than others.  Consult the Org mode FAQ for advice on specific
+applications.
+
+Footnotes
+
+(151)
+
+Diary sexp events, except
+certain built-in types (see 
+icalendar-export-sexp-enumerate-all
+),
+are exported up to 
+icalendar-export-sexp-enumeration-days
+ into
+future.
+
+Next: Other Built-in Backends, Previous: Texinfo Export, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 16: Other Built-in Backends
+URL: https://orgmode.org/manual/Other-Built-in-Backends.html
+================================================================================
+
+404
+
+No sign of that page anywhere…
+
+Homepage
+
+Created by
+    TEC
+    with
+    
+        
+    
+
+licensed under the
+    GNU FDL 1.3
+    — see the source code for this website.
+
+
+
+================================================================================
+SECTION 17: Advanced Export Configuration
+URL: https://orgmode.org/manual/Advanced-Export-Configuration.html
+================================================================================
+
+Advanced Export Configuration (The Org Manual)
+
+Next: Export Region, Previous: Other Built-in Backends, Up: Exporting   [Contents][Index]
+
+13.17 Advanced Export Configuration ¶
+
+Export hooks ¶
+
+The export process executes two hooks before the actual exporting
+begins.  The first hook, 
+org-export-before-processing-functions
+,
+runs before any expansions of macros, Babel code, and include keywords
+in the buffer.  The second hook,
+
+org-export-before-parsing-functions
+, runs before the buffer is
+parsed.
+
+Functions added to these hooks are called with a single argument: the
+export backend actually used, as a symbol.  You may use them for
+heavy duty structural modifications of the document.  For example, you
+can remove every headline in the buffer during export like this:
+
+(defun my-headline-removal (backend)
+  "Remove all headlines in the current buffer.
+BACKEND is the export backend being used, as a symbol."
+  (org-map-entries
+   (lambda ()
+     (delete-region (point) (line-beginning-position 2))
+     ;; We need to tell `org-map-entries' to not skip over heading at
+     ;; point.  Otherwise, it would continue from _next_ heading.  See
+     ;; the docstring of `org-map-entries' for details.
+     (setq org-map-continue-from (point)))))
+
+(add-hook 'org-export-before-parsing-functions #'my-headline-removal)
+
+Filters ¶
+
+Filters are lists of functions to be applied to certain parts for
+a given backend.  The output from the first function in the filter is
+passed on to the next function in the filter.  The final output is the
+output from the final function in the filter.
+
+The Org export process has many filter sets applicable to different
+types of objects, plain text, parse trees, export options, and final
+output formats.  The filters are named after the element type or
+object type: 
+org-export-filter-TYPE-functions
+, where TYPE
+is the type targeted by the filter.  Valid types are:
+
+bodyboldbabel-call
+
+center-blockclockcode
+
+diary-sexpdrawerdynamic-block
+
+entityexample-blockexport-block
+
+export-snippetfinal-outputfixed-width
+
+footnote-definitionfootnote-referenceheadline
+
+horizontal-ruleinline-babel-callinline-src-block
+
+inlinetaskitalicitem
+
+keywordlatex-environmentlatex-fragment
+
+line-breaklinknode-property
+
+optionsparagraphparse-tree
+
+plain-listplain-textplanning
+
+property-drawerquote-blockradio-target
+
+sectionspecial-blocksrc-block
+
+statistics-cookiestrike-throughsubscript
+
+superscripttabletable-cell
+
+table-rowtargettimestamp
+
+underlineverbatimverse-block
+
+Here is an example filter that replaces non-breaking spaces ~ ~ in the
+Org buffer with ‘~’ for the LaTeX backend.
+
+(defun my-latex-filter-nobreaks (text backend info)
+  "Ensure \" \" are properly handled in LaTeX export."
+  (when (org-export-derived-backend-p backend 'latex)
+    (replace-regexp-in-string " " "~" text)))
+
+(add-to-list 'org-export-filter-plain-text-functions
+             'my-latex-filter-nobreaks)
+
+A filter requires three arguments: the code to be transformed, the
+name of the backend, and some optional information about the export
+process.  The third argument can be safely ignored.  Note the use of
+
+org-export-derived-backend-p
+ predicate that tests for latex
+backend or any other backend, such as beamer, derived from
+latex.
+
+Defining filters for individual files ¶
+
+The Org export can filter not just for backends, but also for
+specific files through the ‘BIND’ keyword.  Here is an example with
+two filters; one removes brackets from time stamps, and the other
+removes strike-through text.  The filter functions are defined in
+a code block in the same Org file, which is a handy location for
+debugging.
+
+#+BIND: org-export-filter-timestamp-functions (tmp-f-timestamp)
+#+BIND: org-export-filter-strike-through-functions (tmp-f-strike-through)
+#+BEGIN_SRC emacs-lisp :exports results :results none
+  (defun tmp-f-timestamp (s backend info)
+    (replace-regexp-in-string "&[lg]t;\\|[][]" "" s))
+  (defun tmp-f-strike-through (s backend info) "")
+#+END_SRC
+
+Summary of the export process ¶
+
+Org mode export is a multistep process that works on a temporary copy
+of the buffer.  The export process consists of 4 major steps:
+
+ Process the temporary copy, making necessary changes to the buffer
+text;
+
+ Parse the buffer, converting plain Org markup into an abstract
+syntax tree (AST);
+
+ Convert the AST to text, as prescribed by the selected export
+backend;
+
+ Post-process the resulting exported text.
+
+Process temporary copy of the source Org buffer 152:
+
+ Execute 
+org-export-before-processing-functions
+ (see Export hooks);
+
+ Expand ‘#+include’ keywords in the whole buffer (see
+Include Files);
+
+ Remove commented subtrees in the whole buffer (see Comment Lines);
+
+ Replace macros in the whole buffer (see Macro Replacement),
+unless 
+org-export-replace-macros
+ is nil;
+
+ When 
+org-export-use-babel
+ is non-nil (default), process code
+blocks:
+
+Leave code blocks inside archived subtrees (see Internal archiving) as is;
+
+Evaluate all the other code blocks according to code block
+headers (see Limit code block evaluation);
+
+Remove code, results of evaluation, both, or neither according
+to ‘:exports’ header argument (see Exporting Code Blocks).
+
+Parse the temporary buffer, creating AST:
+
+ Execute 
+org-export-before-parsing-functions
+ (see Export hooks).
+The hook functions may still modify the buffer;
+
+ Calculate export option values according to subtree-specific export
+settings, in-buffer keywords, ‘#+BIND’ keywords, and buffer-local
+and global customization.  The whole buffer is considered;
+
+ When 
+org-org-with-cite-processors
+ is non-nil (default), determine
+contributing bibliographies and record them into export options
+(see Citations).  The whole buffer is considered;
+
+ Execute 
+org-export-filter-options-functions
+;
+
+ Parse the accessible portion of the temporary buffer to generate an
+AST.  The AST is a nested list of lists representing Org syntax
+elements (see Org Element API for more details):
+
+(org-data ...
+ (heading
+  (section
+   (paragraph (plain-text) (bold (plain-text))))
+  (heading)
+  (heading (section ...))))
+
+Past this point, modifications to the temporary buffer no longer
+affect the export; Org export works only with the AST;
+
+ Remove elements that are not exported from the AST:
+
+Headings according to ‘SELECT_TAGS’ and ‘EXCLUDE_TAGS’ export
+keywords; ‘task’, ‘inline’, ‘arch’ export options (see
+Export Settings);
+
+Comments;
+
+Clocks, drawers, fixed-width environments, footnotes, LaTeX
+environments and fragments, node properties, planning lines,
+property drawers, statistics cookies, timestamps, etc. according
+to ‘#+OPTIONS’ keyword (see Export Settings);
+
+Table rows containing width and alignment markers, unless the
+selected export backend changes 
+:with-special-rows
+ export option
+to non-nil (see Column Width and Alignment);
+
+Table columns containing recalc marks (see Advanced features).
+
+ Expand environment variables in file link AST nodes according to
+the ‘expand-links’ export option (see Export Settings);
+
+ Execute 
+org-export-filter-parse-tree-functions
+.  These
+functions can modify the AST by side effects;
+
+ When 
+org-org-with-cite-processors
+ is non-nil (default), replace
+citation AST nodes and ‘#+print_bibliography’ keyword AST nodes as
+prescribed by the selected citation export processor (see Citation export processors).
+
+Convert the AST to text by traversing the AST nodes, depth-first:
+
+ Convert the leaf nodes (without children) to text as prescribed
+by “transcoders” in the selected export backend
+153;
+
+ Pass the converted nodes through the corresponding export
+filters (see Filters);
+
+ Concatenate all the converted child nodes to produce parent
+node contents;
+
+ Convert the nodes with children to text, passing the nodes
+themselves and their exported contents to the corresponding
+transcoders and then to the export filters (see Filters).
+
+Post-process the exported text:
+
+ Post-process the converted AST, as prescribed by the export
+backend. 154
+This step usually adds generated content (like Table of Contents)
+to the exported text;
+
+ Execute 
+org-export-filter-body-functions
+;
+
+ Unless body-only export is selected (see The Export Dispatcher),
+add the necessary metadata to the final document, as prescribed
+by the export backend.  Examples: Document author/title; HTML
+headers/footers; LaTeX preamble;
+
+ When 
+org-org-with-cite-processors
+ is non-nil (default), add
+bibliography metadata, as prescribed by the citation export
+processor;
+
+ Execute 
+org-export-filter-final-output-functions
+.
+
+Extending an existing backend ¶
+
+Some parts of the conversion process can be extended for certain
+elements to introduce a new or revised translation.  That is how
+the HTML export backend was extended to handle Markdown format.  The
+extensions work seamlessly so any aspect of filtering not done by the
+extended backend is handled by the original backend.  Of all the
+export customization in Org, extending is very powerful as it operates
+at the parser level.
+
+For this example, make the ascii backend display the language used
+in a source code block.  Also make it display only when some attribute
+is non-
+nil
+, like the following:
+
+#+ATTR_ASCII: :language t
+
+Then extend ASCII backend with a custom “my-ascii” backend.
+
+(defun my-ascii-src-block (src-block contents info)
+  "Transcode a SRC-BLOCK element from Org to ASCII.
+CONTENTS is nil.  INFO is a plist used as a communication
+channel."
+  (if (not (org-export-read-attribute :attr_ascii src-block :language))
+      (org-export-with-backend 'ascii src-block contents info)
+    (concat
+     (format ",--[ %s ]--\n%s`----"
+             (org-element-property :language src-block)
+             (replace-regexp-in-string
+              "^" "| "
+              (org-element-normalize-string
+               (org-export-format-code-default src-block info)))))))
+
+(org-export-define-derived-backend 'my-ascii 'ascii
+  :translate-alist '((src-block . my-ascii-src-block)))
+
+The 
+my-ascii-src-block
+ function looks at the attribute above the
+current element.  If not true, hands over to ascii backend.  If
+true, which it is in this example, it creates a box around the code
+and leaves room for the inserting a string for language.  The last
+form creates the new backend that springs to action only when
+translating 
+src-block
+ type elements.
+
+To use the newly defined backend, evaluate the following from an Org
+buffer:
+
+(org-export-to-buffer 'my-ascii "*Org MY-ASCII Export*")
+
+Further steps to consider would be an interactive function,
+self-installing an item in the export dispatcher menu, and other
+user-friendly improvements.  See
+https://orgmode.org/worg/dev/org-export-reference.html for more
+details.
+
+Footnotes
+
+(152)
+
+Unless
+otherwise specified, each step of the export process only operates on
+the accessible portion of the buffer.  When subtree export is selected
+(see The Export Dispatcher), the buffer is narrowed to the body of
+the selected subtree, so that the rest of the buffer text, except
+export keywords, does not contribute to the export output.
+
+(153)
+
+See transcoders and 
+:translate-alist
+ in the docstrings
+of 
+org-export-define-backend
+ and 
+org-export-define-derived-backend
+.
+
+(154)
+
+See 
+inner-template
+ in the docstring of 
+org-export-define-backend
+.
+
+Next: Export Region, Previous: Other Built-in Backends, Up: Exporting   [Contents][Index]
+
+
+
+================================================================================
+SECTION 18: Export Region
+URL: https://orgmode.org/manual/Export-Region.html
+================================================================================
+
+Export Region (The Org Manual)
+
+Previous: Advanced Export Configuration, Up: Exporting   [Contents][Index]
+
+13.18 Export Region ¶
+
+Some export backends include commands to convert a region of Org
+formatted text to another format, such as HTML or LaTeX.  The
+conversion replaces the original source.  Here are such commands:
+
+org-export-region-to-ascii
+ ¶
+
+Convert the selected region into ASCII.
+
+org-export-region-to-utf8
+ ¶
+
+Convert the selected region into UTF-8.
+
+org-export-region-to-html
+ ¶
+
+Convert the selected region into HTML.
+
+org-export-region-to-latex
+ ¶
+
+Convert the selected region into LaTeX.
+
+org-export-region-to-texinfo
+ ¶
+
+Convert the selected region into Texinfo.
+
+org-export-region-to-md
+ ¶
+
+Convert the selected region into Markdown.
+
+The in-place conversion is particularly handy for quick conversion of
+tables and lists in non-Org buffers.  For example, in an HTML buffer,
+write a list in Org syntax, select it, and convert it to HTML with
+M-x org-html-convert-region-to-html.
+
+Previous: Advanced Export Configuration, Up: Exporting   [Contents][Index]
+

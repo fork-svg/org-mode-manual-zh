@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引用处理 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>引用处理</h1>
+
+<p>虽然链接（参见<a href="file:04-超链接.org">超链接</a>）通常足以从 Org 中引用外部或内部信息，但当需要引用多个目标或排版印刷出版物时，链接就有其局限性。Org 模式提供了一种更精细的标记方式来"引用"外部资源。</p>
+
+<h2>基本用法</h2>
+
+<p>例如，考虑以下 Org 模式代码片段：</p>
+
+<pre class="code-block code-example"><code>#+bibliography: citationdata.bib
+
+Org 模式被多个社区使用 [cite:teaching: @orgteaching; and TeX: @orgtex]。
+[cite/author/caps:@orgtex] 使用 Org 模式简化科学出版物的写作，
+而 [cite/author/caps:@orgteaching] 则尝试使用 Org babel 改进教学。
+
+#+print_bibliography:
+</code></pre>
+
+<p>Org 模式将从 <code>#+bibliography</code> 数据库中收集引用元数据，并用其排版导出的文档为任意格式。例如，上面的代码片段在 ASCII 导出时输出如下：</p>
+
+<pre class="code-block code-example"><code>Org 模式被多个社区使用 (teaching: Birkenkrahe, Marcus, 2023, and TeX:
+Somma, Emmanuele F, 2023)。Somma, Emmanuele F 使用 Org 模式简化
+科学出版物的写作，而 Birkenkrahe, Marcus 则尝试使用 Org babel
+改进教学。
+
+Birkenkrahe, Marcus (2023). /Teaching Data Science with Literate
+Programming Tools/, MDPI.
+
+Somma, Emmanuele F (2023). /Simplifying LaTeX with ORG-mode in Emacs/,
+TUGboat volume.
+</code></pre>
+
+<h2>引用语法</h2>
+
+<p>Org 模式中的引用使用特殊的方括号语法。基本格式为：</p>
+
+<pre class="code-block code-example"><code>[cite:引用样式: @引用键]
+</code></pre>
+
+<p>其中：</p>
+<ul>
+<li><code>cite</code> 关键字标识这是一个引用</li>
+<li>样式前缀（如 <code><em>author</em>caps</code>）控制引用的渲染方式</li>
+<li><code>@引用键</code> 对应 <code>#+bibliography</code> 文件中的条目</li>
+</ul>
+
+<h3>引用样式</h3>
+
+<p>引用样式通过前缀斜杠指定，常用样式包括：</p>
+
+<table class="org-table">
+<tr><td>样式</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>[cite:@key]</code></td><td>默认样式（通常为文本样式）</td></tr>
+<tr><td><code>[cite/author:@key]</code></td><td>仅显示作者</td></tr>
+<tr><td><code>[cite<em>author</em>caps:@key]</code></td><td>显示作者，首字母大写</td></tr>
+<tr><td><code>[cite/year:@key]</code></td><td>仅显示年份</td></tr>
+<tr><td><code>[cite/noauthor:@key]</code></td><td>不显示作者</td></tr>
+<tr><td><code>[cite/caps:@key]</code></td><td>首字母大写</td></tr>
+<tr><td><code>[cite/nocite:@key]</code></td><td>不出现在文本中，仅出现在参考文献中</td></tr>
+</tbody></table>
+
+<h3>多个引用</h3>
+
+<p>可以在一个引用标记中组合多个引用，用分号分隔：</p>
+
+<pre class="code-block code-example"><code>[cite:@key1; @key2; @key3]
+</code></pre>
+
+<h3>引用前缀和后缀</h3>
+
+<p>可以为引用添加前缀和后缀文本：</p>
+
+<pre class="code-block code-example"><code>[cite:参见 @key1 第 42 页]
+[cite:@key1 第 42 页以及之后]
+</code></pre>
+
+<h3>实用示例</h3>
+
+<p>下面展示一个完整的引用工作流程：</p>
+
+<pre class="code-block code-example"><code>#+TITLE: 论文草稿
+#+AUTHOR: 张三
+#+DATE: 2024-01-15
+#+bibliography: refs.bib
+
+* 引言
+
+机器学习在近年来取得了显著进展 [cite:@goodfellow2016deep]。
+深度学习的理论基础详见 [cite/author/caps:@goodfellow2016deep]。
+
+关于卷积神经网络，请参考 [cite:@krizhevsky2012imagenet;
+@simonyan2014very; @he2016deep]。
+
+* 方法
+
+我们采用了标准的方法论 [cite/noauthor:@bishop2006pattern]。
+实验设置参考了 [cite:参见 @murphy2012machine 第 3 章]。
+
+#+print_bibliography:
+</code></pre>
+
+<h2>引用功能</h2>
+
+<p>除了导出之外，用户还可以使用补全功能搜索并插入来自参考文献的引用（通过 <code>org-cite-insert</code>）。引用也可以像普通链接一样，使用 <code>org-open-at-point</code> "跟随"它们跳转到引用元数据。</p>
+
+<h3>插入引用</h3>
+
+<p>使用 <code>C-c C-x @</code> （<code>org-cite-insert</code>）插入引用。该命令会显示一个补全菜单，让您从参考文献中搜索并选择条目。</p>
+
+<pre class="code-block code-src"><code>;; 设置默认引用插入处理器
+(setq org-cite-insert-processor 'citar)
+</code></pre>
+
+<h3>跟随引用</h3>
+
+<p>使用 <code>C-c C-o</code>（<code>org-open-at-point</code>）跟随引用时，Emacs 会跳转到对应的参考文献条目。</p>
+
+<h2>引用处理器</h2>
+
+<p>您可以使用内置或外部引用处理器来自定义引用处理的每个方面（能力，capability）。Org 模式自带了几个针对 LaTeX 导出和 BibTeX 参考文献优化的内置引用处理器（<code>bibtex</code>、<code>biblatex</code> 和 <code>natbib</code> 处理器），或者使用引用样式语言（Citation Style Language）描述的更通用格式（<code>csl</code> 处理器）。</p>
+
+<p>默认引用处理器是 <code>basic</code>——它适用于任意导出格式，同时识别 BibTeX 和 CSL 参考文献。更多引用处理器以 Emacs 包的形式分发。多个引用处理器可以混合使用以满足您的偏好。</p>
+
+<h3>配置引用处理器</h3>
+
+<p>通过配置以下变量来选择每个引用能力使用的处理器：</p>
+
+<table class="org-table">
+<tr><td>变量</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>org-cite-activate-processor</code></td><td>激活（字体化、工具提示预览等）</td></tr>
+<tr><td><code>org-cite-follow-processor</code></td><td>跟随（通过 <code>org-open-at-point</code> 在引用上的操作）</td></tr>
+<tr><td><code>org-cite-insert-processor</code></td><td>插入（通过 <code>org-cite-insert</code> 添加和编辑引用）</td></tr>
+<tr><td><code>org-cite-export-processors</code></td><td>导出（通过不同的库处理不同的目标格式）</td></tr>
+</tbody></table>
+
+<h3>实用配置示例</h3>
+
+<pre class="code-block code-src"><code>;; 使用 citar 作为引用插入和跟随处理器
+(setq org-cite-insert-processor 'citar)
+(setq org-cite-follow-processor 'citar)
+(setq org-cite-activate-processor 'citar)
+
+;; 为不同导出格式设置不同的处理器
+(setq org-cite-export-processors
+      '((latex biblatex)
+        (html csl)
+        (ascii basic)))
+</code></pre>
+
+<h3>citar 集成示例</h3>
+
+<p><code>citar</code> 是一个流行的引用管理包，提供了强大的补全和搜索功能：</p>
+
+<pre class="code-block code-src"><code>;; 安装并配置 citar
+(use-package citar
+  :custom
+  (citar-bibliography '(&quot;~/Documents/refs.bib&quot;))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar))
+</code></pre>
+
+<h2>参考文献导出处理器</h2>
+
+<p>参考文献导出处理器控制参考文献列表在导出时的呈现方式。不同的处理器支持不同的输出格式。</p>
+
+<h3>内置处理器</h3>
+
+<table class="org-table">
+<tr><td>处理器</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>basic</code></td><td>通用处理器，适用于所有导出格式</td></tr>
+<tr><td><code>bibtex</code></td><td>使用 BibTeX 处理 LaTeX 导出</td></tr>
+<tr><td><code>biblatex</code></td><td>使用 biblatex 处理 LaTeX 导出</td></tr>
+<tr><td><code>natbib</code></td><td>使用 natbib 处理 LaTeX 导出</td></tr>
+<tr><td><code>csl</code></td><td>使用 CSL 样式处理器</td></tr>
+</tbody></table>
+
+<h3>bibliography 文件</h3>
+
+<p><code>#+bibliography</code> 关键字指定参考文献数据库文件：</p>
+
+<pre class="code-block code-example"><code>#+bibliography: refs.bib
+#+bibliography: ~/Documents/refs.bib
+#+bibliography: refs.bib other-refs.bib
+</code></pre>
+
+<p>支持 BibTeX（<code>.bib</code>）和 CSL JSON 格式。</p>
+
+<h2>打印参考文献</h2>
+
+<p>使用 <code>#+print_bibliography:</code> 关键字在文档中插入参考文献列表。导出时，这将生成格式化的参考文献列表。</p>
+
+<pre class="code-block code-example"><code>#+bibliography: refs.bib
+
+* 引言
+...
+
+* 方法
+...
+
+#+print_bibliography:
+</code></pre>
+
+<h3>自定义参考文献样式</h3>
+
+<p>可以通过选项控制参考文献的标题和样式：</p>
+
+<pre class="code-block code-example"><code>#+PRINT_BIBLIOGRAPHY: title: 参考文献
+</code></pre>
+
+<p>或在 Emacs Lisp 中配置：</p>
+
+<pre class="code-block code-src"><code>;; 自定义参考文献标题
+(setq org-cite-biblatex-options
+      &quot;sorting=nyt,backend=biber&quot;)
+</code></pre>
+
+<h2>实用工作流</h2>
+
+<h3>创建 BibTeX 文件</h3>
+
+<p>一个典型的 <code>refs.bib</code> 文件包含如下条目：</p>
+
+<pre class="code-block code-example"><code>@book{goodfellow2016deep,
+  title={Deep Learning},
+  author={Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron},
+  year={2016},
+  publisher={MIT Press}
+}
+
+@article{krizhevsky2012imagenet,
+  title={ImageNet classification with deep convolutional neural networks},
+  author={Krizhevsky, Alex and Sutskever, Ilya and Hinton, Geoffrey E},
+  journal={Advances in Neural Information Processing Systems},
+  year={2012}
+}
+
+@inproceedings{simonyan2014very,
+  title={Very deep convolutional networks for large-scale image recognition},
+  author={Simonyan, Karen and Zisserman, Andrew},
+  booktitle={arXiv preprint arXiv:1409.1556},
+  year={2014}
+}
+</code></pre>
+
+<h3>从 DOI 获取引用</h3>
+
+<p>可以使用外部工具从 DOI 获取 BibTeX 条目：</p>
+
+<pre class="code-block code-src"><code>;; 使用 doi-utils 包从 DOI 获取 BibTeX
+(use-package doi-utils
+  :bind
+  (&quot;C-c d&quot; . doi-utils-add-bibtex-entry-from-doi))
+</code></pre>
+
+<h3>在 Org 中搜索参考文献</h3>
+
+<p>使用 <code>C-c C-x @</code> 打开引用搜索界面，可以按作者、标题、年份等搜索：</p>
+
+<pre class="code-block code-example"><code>搜索: goodfellow deep learning
+结果:
+  [1] goodfellow2016deep - Deep Learning (2016)
+  [2] goodfellow2014generative - Generative Adversarial Nets (2014)
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>
