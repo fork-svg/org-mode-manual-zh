@@ -1,0 +1,336 @@
+* 属性与列
+
+属性是为标题附加元数据的方式。列视图则将这些属性以表格形式展示。
+
+** 属性
+
+属性是键值对，存储在 *属性抽屉*（Property Drawer）中。
+
+*** 属性抽屉语法
+
+属性抽屉是一组 =:PROPERTYNAME: VALUE= 形式的行，放在 =:PROPERTIES:= 和 =:END:= 之间：
+
+#+BEGIN_EXAMPLE
+* 任务标题
+  :PROPERTIES:
+  :ID:       12345-67890
+  :CATEGORY: work
+  :Effort:   2:00
+  :END:
+#+END_EXAMPLE
+
+属性名不区分大小写。属性值可以是任意文本。
+
+*** 特殊属性
+
+以下属性有特殊含义：
+
+| 属性 | 用途 |
+|------+------|
+| =ID= | 条目的唯一标识符 |
+| =CATEGORY= | 条目的分类 |
+| =Effort= | 工作量估算 |
+| =CLOCK= | 时间记录（自动管理） |
+| =LOGGING= | 日志设置 |
+| =ARCHIVE= | 归档位置 |
+
+*** 设置属性
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-x p= | 设置属性 |
+| =C-c C-x P= | 设置当前树的属性 |
+| =C-c C-x e= | 设置工作量估算 |
+
+*** 属性继承
+
+子标题继承父标题的属性。例如：
+
+#+BEGIN_EXAMPLE
+* 项目A
+  :PROPERTIES:
+  :CATEGORY: projectA
+  :END:
+** 子任务1
+** 子任务2
+#+END_EXAMPLE
+
+子任务1 和子任务2 都继承 =CATEGORY: projectA= 属性。
+
+要禁止继承，在属性值后加 =!=：
+
+#+BEGIN_EXAMPLE
+:PROPERTIES:
+:CATEGORY: projectA!
+:END:
+#+END_EXAMPLE
+
+*** 属性搜索
+
+可以使用搜索命令按属性查找条目：
+
+#+BEGIN_EXAMPLE
+C-c / m CATEGORY="work"
+C-c / m Effort<1:00
+#+END_EXAMPLE
+
+** 列视图
+
+列视图以表格形式显示标题及其属性，方便浏览和编辑。
+
+*** 列定义
+
+在文件顶部用 =#+COLUMNS:= 定义列：
+
+#+BEGIN_EXAMPLE
+#+COLUMNS: 25 ITEM 20 TODO 10 PRIORITY 15 EFFORT
+#+END_EXAMPLE
+
+格式为：=宽度 属性名=
+
+=ITEM= 是特殊列，显示标题文本。
+
+*** 列视图范围
+
+可以在文件中设置列视图的范围：
+
+#+BEGIN_EXAMPLE
+#+STARTUP: overview
+#+COLUMNS: 25 ITEM 20 TODO 15 EFFORT
+
+* 项目
+:PROPERTIES:
+:COLUMNS:  25 ITEM 20 TODO 15 EFFORT 10 SCHEDULED
+:END:
+** 子任务
+#+END_EXAMPLE
+
+文件级 =#+COLUMNS:= 是默认定义，属性级的 =COLUMNS= 覆盖默认值。
+
+*** 显示列视图
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-x C-c= | 切换列视图 |
+| =q= | 退出列视图 |
+
+在列视图中：
+
+- 每个列对应一个属性
+- 可以使用 =TAB= 和 =S-TAB= 在列间移动
+- 直接输入可以编辑当前单元格的值
+
+*** 列视图中的编辑
+
+| 快捷键 | 功能 |
+|--------+------|
+| =TAB= | 下一列 |
+| =S-TAB= | 上一列 |
+| =n= | 下一行 |
+| =p= | 上一行 |
+| =v= | 显示当前行的完整内容 |
+| =e= | 编辑当前属性 |
+| =C-c C-x p= | 设置属性值 |
+| =C-c C-x e= | 设置工作量 |
+| =a= | 切换显示全部属性 |
+
+*** 列视图示例
+
+一个完整的列视图配置示例：
+
+#+BEGIN_EXAMPLE
+#+COLUMNS: 25 ITEM 15 TODO 10 PRIORITY 10 EFFORT 12 SCHEDULED
+
+* 工作计划
+:PROPERTIES:
+:CATEGORY: work
+:END:
+** TODO 编写文档
+   SCHEDULED: <2024-02-01>
+   :PROPERTIES:
+   :EFFORT: 4:00
+   :PRIORITY: A
+   :END:
+** TODO 代码审查
+   SCHEDULED: <2024-02-02>
+   :PROPERTIES:
+   :EFFORT: 1:30
+   :PRIORITY: B
+   :END:
+** DONE 发布版本
+   :PROPERTIES:
+   :EFFORT: 2:00
+   :PRIORITY: A
+   :END:
+#+END_EXAMPLE
+
+*** 动态列
+
+可以为列定义允许的取值列表：
+
+#+BEGIN_EXAMPLE
+#+PROPERTY: Effort_ALL 0:30 1:00 2:00 4:00 8:00
+#+PROPERTY: PRIORITY_ALL A B C
+#+END_EXAMPLE
+
+在列视图中按 =e= 编辑时，这些值会作为候选项出现。
+
+*** 列视图汇总
+
+列视图支持对数值属性进行汇总计算：
+
+#+BEGIN_EXAMPLE
+#+COLUMNS: 25 ITEM 10 EFFORT{+} 10 CLOCK{+}
+
+* 项目
+** TODO 任务1
+   :PROPERTIES:
+   :Effort: 2:00
+   :END:
+** TODO 任务2
+   :PROPERTIES:
+   :Effort: 3:00
+   :END:
+#+END_EXAMPLE
+
+=EFFORT{+}= 表示对 Effort 属性求和。
+
+支持的汇总函数：
+
+| 函数 | 功能 |
+|------+------|
+| ={+}= | 求和 |
+| ={$}= | 求和并格式化货币 |
+| ={$%}= | 求百分比 |
+| ={min}= | 最小值 |
+| ={max}= | 最大值 |
+| ={X}= | 显示非空值个数 |
+| ={:}= | 计数 |
+| ={$*}= | 乘积 |
+
+*** 列视图中的公式
+
+可以为列定义计算公式：
+
+#+BEGIN_EXAMPLE
+#+COLUMNS: 25 ITEM 10 EFFORT 10 CLOCK{+} 10 REMAIN{($)}
+
+* 项目
+  :PROPERTIES:
+  :REMAIN: (mapcar (lambda (x) (format "%d" x))
+            (list (- (org-entry-get nil "EFFORT" t)
+                     (org-entry-get nil "CLOCKSUM" t))))
+  :END:
+#+END_EXAMPLE
+
+** 属性使用场景
+
+*** 工作量跟踪
+
+#+BEGIN_EXAMPLE
+* 项目计划
+:PROPERTIES:
+:COLUMNS:  25 ITEM 10 EFFORT{+} 10 CLOCK{+} 15 REMAIN{:-}
+:END:
+** TODO 设计阶段
+   :PROPERTIES:
+   :Effort: 8:00
+   :END:
+*** TODO 初步设计
+    :PROPERTIES:
+    :Effort: 3:00
+    :END:
+*** TODO 详细设计
+    :PROPERTIES:
+    :Effort: 5:00
+    :END:
+** TODO 实施阶段
+   :PROPERTIES:
+   :Effort: 16:00
+   :END:
+#+END_EXAMPLE
+
+*** 使用 ID 属性
+
+ID 属性用于唯一标识条目，支持跨文件引用：
+
+#+BEGIN_EXAMPLE
+* 需求文档
+  :PROPERTIES:
+  :ID: req-001
+  :END:
+
+在另一个文件中引用：
+参见 [[id:req-001][需求文档]]。
+#+END_EXAMPLE
+
+使用 =C-c C-x p ID RET <uuidgen>= 可以自动生成 UUID。
+
+*** 使用 CATEGORY 属性
+
+CATEGORY 属性用于在日程视图中对条目分组：
+
+#+BEGIN_EXAMPLE
+* 工作任务
+  :PROPERTIES:
+  :CATEGORY: work
+  :END:
+
+* 家庭事务
+  :PROPERTIES:
+  :CATEGORY: home
+  :END:
+#+END_EXAMPLE
+
+也可以在整个文件级别设置分类：
+
+#+BEGIN_EXAMPLE
+#+CATEGORY: work
+#+END_EXAMPLE
+
+** 全局属性
+
+可以在 Emacs 配置中定义全局属性：
+
+#+BEGIN_SRC emacs-lisp
+;; 为所有文件设置默认属性
+(setq org-global-properties
+      '(("Effort_ALL" . "0:15 0:30 1:00 2:00 4:00 8:00")
+        ("Priority_ALL" . "A B C D")))
+
+;; 为特定模式设置属性
+(setq org-global-properties
+      '(("Style_ALL" . "report essay memo")
+        ("Status_ALL" . "draft review final")))
+#+END_SRC
+
+** 实用技巧
+
+*** 快速设置常用属性
+
+#+BEGIN_SRC emacs-lisp
+;; 定义常用属性快捷键
+(define-key org-mode-map (kbd "C-c e")
+  (lambda ()
+    (interactive)
+    (org-set-property "Effort"
+      (completing-read "Effort: "
+                       '("0:15" "0:30" "1:00" "2:00" "4:00")))))
+#+END_SRC
+
+*** 属性与 agenda 集成
+
+在日程视图中显示属性：
+
+#+BEGIN_SRC emacs-lisp
+;; 在日程条目中显示属性
+(setq org-agenda-prefix-format
+      '((agenda . " %i %-12:c%?  ")
+        (todo . " %i %-12:c ")
+        (tags . " %i %-12:c ")
+        (search . " %i %-12:c ")))
+
+;; 在 agenda 中显示 Effort 属性
+(add-to-list 'org-agenda-prefix-format
+             '(agenda . " %i %-12:c %10e "))
+#+END_SRC

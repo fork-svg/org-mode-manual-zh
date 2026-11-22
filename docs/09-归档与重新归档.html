@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>归档与重新归档 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>归档与重新归档</h1>
+
+<p>Org 模式提供了强大的条目整理功能：重新归档（Refiling）用于移动条目到不同位置，归档（Archiving）用于保存已完成的条目。</p>
+
+<h2>重新归档</h2>
+
+<p>重新归档是将条目从一个位置移动到另一个位置的操作。常用于将 TODO 项移到对应的项目文件中。</p>
+
+<h3>基本用法</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-w</code></td><td>重新归档当前条目</td></tr>
+<tr><td><code>C-u C-c C-w</code></td><td>重新归档并预览目标</td></tr>
+</tbody></table>
+
+<p>按 <code>C-c C-w</code> 后，Org 会显示一个目标列表供选择。</p>
+
+<h3>目标文件设置</h3>
+
+<p>设置重新归档的目标文件：</p>
+
+<pre class="code-block code-src"><code>;; 指定目标文件列表
+(setq org-refile-targets
+      '((&quot;work.org&quot; :maxlevel . 1)
+        (&quot;projects.org&quot; :maxlevel . 2)
+        (&quot;archive.org&quot; :maxlevel . 1)))
+</code></pre>
+
+<p><code>:maxlevel</code> 指定扫描到第几级标题作为目标。</p>
+
+<h3>目标文件的其他设置</h3>
+
+<pre class="code-block code-src"><code>;; 使用当前 agenda 文件作为目标
+(setq org-refile-targets
+      '((org-agenda-files :maxlevel . 1)))
+
+;; 使用特定标签作为目标
+(setq org-refile-targets
+      '((&quot;projects.org&quot; :tag . &quot;PROJECT&quot;)))
+
+;; 使用 TODO 关键字作为目标
+(setq org-refile-targets
+      '((&quot;tasks.org&quot; :todo . &quot;PROJECT&quot;)))
+</code></pre>
+
+<h3>目标缓存</h3>
+
+<p>当目标文件较多时，可以缓存目标以提高速度：</p>
+
+<pre class="code-block code-src"><code>;; 启用目标缓存
+(setq org-refile-use-cache t)
+
+;; 清除缓存
+;; M-x org-refile-cache-clear
+</code></pre>
+
+<h3>目标排序</h3>
+
+<pre class="code-block code-src"><code>;; 按文件顺序排序（默认）
+(setq org-refile-use-outline-path 'file)
+
+;; 显示完整路径
+(setq org-refile-use-outline-path t)
+
+;; 按字母排序
+(setq org-outline-path-complete-in-steps nil)
+</code></pre>
+
+<h3>重新归档示例</h3>
+
+<p>假设有一个待办事项文件：</p>
+
+<pre class="code-block code-example"><code>* 收件箱
+** 给客户发邮件
+** 准备季度报告
+** 预约牙医
+** 更新网站
+</code></pre>
+
+<p>按 <code>C-c C-w</code> 后可以选择将每个条目移到对应的文件中：</p>
+
+<ul>
+<li>"给客户发邮件" → <code>work.org</code> 的 <code>邮件</code> 分类下</li>
+<li>"预约牙医" → <code>personal.org</code> 的 <code>健康</code> 分类下</li>
+<li>"更新网站" → <code>projects.org</code> 的 <code>网站</code> 项目下</li>
+</ul>
+
+<h3>创建新目标</h3>
+
+<p>如果目标位置不存在，可以在重新归档时创建：</p>
+
+<pre class="code-block code-src"><code>;; 允许创建新的目标节点
+(setq org-refile-allow-creating-parent-nodes t)
+</code></pre>
+
+<p>设置为 <code>t</code> 时，可以在现有目标下创建新的子节点。设置为 <code>'verbose</code> 时会显示确认提示。</p>
+
+<h3>重新归档后的操作</h3>
+
+<pre class="code-block code-src"><code>;; 重新归档后自动跳转
+(setq org-refile-keep-previous-window-config nil)
+</code></pre>
+
+<h3>验证目标</h3>
+
+<p>可以限制重新归档只能到达特定的位置：</p>
+
+<pre class="code-block code-src"><code>;; 只允许归档到特定的最大层级
+(setq org-refile-target-verify-function
+      (lambda ()
+        (not (org-entry-is-done-p))))
+</code></pre>
+
+<h2>归档</h2>
+
+<p>归档用于将已完成或不再需要的条目移到一个特殊的归档位置，保持主文件的整洁。</p>
+
+<h3>归档策略</h3>
+
+<p>Org 支持多种归档策略：</p>
+
+<p>1. 同文件归档（sibling）</p>
+<p>2. 同级归档（tree）</p>
+<p>3. 外部文件归档（file）</p>
+
+<h3>同文件归档</h3>
+
+<p>归档到同一文件末尾：</p>
+
+<pre class="code-block code-example"><code>#+ARCHIVE: ::* 已归档
+
+* 活跃项目
+** DONE 完成的任务1
+** DONE 完成的任务2
+
+* 已归档
+** DONE 完成的任务1
+** DONE 完成的任务2
+</code></pre>
+
+<p><code>::*</code> 表示归档到同一文件中标题为 "已归档" 的一级标题下。</p>
+
+<h3>外部文件归档</h3>
+
+<p>归档到外部文件：</p>
+
+<pre class="code-block code-example"><code>#+ARCHIVE: ~/Documents/archive.org::
+
+或归档到特定文件中的标题：
+#+ARCHIVE: ~/Documents/archive.org::* 2024年归档
+</code></pre>
+
+<h3>同级归档</h3>
+
+<p>将条目的子级归档到同级标题下：</p>
+
+<pre class="code-block code-example"><code>#+ARCHIVE: ::*
+
+* 项目A
+** DONE 已完成任务1
+** DONE 已完成任务2
+
+* 项目A 归档
+** DONE 已完成任务1
+** DONE 已完成任务2
+</code></pre>
+
+<h3>归档命令</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-x C-a</code></td><td>归档当前条目</td></tr>
+<tr><td><code>C-c C-x C-s</code></td><td>归档并标记完成</td></tr>
+<tr><td><code>C-u C-c C-x C-a</code></td><td>切换归档显示</td></tr>
+</tbody></table>
+
+<h3>归档前的确认</h3>
+
+<pre class="code-block code-src"><code>;; 设置归档确认方式
+(setq org-archive-confirm t)
+</code></pre>
+
+<h3>默认归档设置</h3>
+
+<pre class="code-block code-src"><code>;; 全局默认归档位置
+(setq org-archive-location
+      &quot;~/Documents/org/archive/%s_archive::&quot;)
+
+;; 使用日期组织归档
+(setq org-archive-location
+      &quot;~/Documents/org/archive/%s_archive::datetree/&quot;)
+</code></pre>
+
+<p><code>%s</code> 会被替换为原文件名。</p>
+
+<h3>使用日期树归档</h3>
+
+<p>按日期组织归档文件：</p>
+
+<pre class="code-block code-example"><code>#+ARCHIVE: ~/archive.org::datetree/
+
+或在全局设置：
+(setq org-archive-location
+      &quot;~/archive.org::datetree/&quot;)
+</code></pre>
+
+<p>归档后条目会自动放到对应日期的位置：</p>
+
+<pre class="code-block code-example"><code>* 2024
+** 2024-01 一月
+*** 2024-01-15
+**** DONE 已完成的任务
+</code></pre>
+
+<h2>归档显示与管理</h2>
+
+<h3>显示归档条目</h3>
+
+<pre class="code-block code-src"><code>;; 在 agenda 中显示归档条目
+(setq org-agenda-archives-mode t)
+
+;; 只在特定视图中显示
+(setq org-agenda-archives-mode 'files)
+</code></pre>
+
+<p>在 agenda 视图中：</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>v a</code></td><td>切换归档显示模式</td></tr>
+<tr><td><code>v A</code></td><td>仅显示归档条目</td></tr>
+</tbody></table>
+
+<h3>取消归档</h3>
+
+<p>取消归档将条目移回原位置：</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-x C-a</code> (在归档条目上)</td><td>取消归档</td></tr>
+</tbody></table>
+
+<h3>批量归档</h3>
+
+<p>可以批量归档多个条目：</p>
+
+<pre class="code-block code-src"><code>;; 批量归档所有 DONE 状态的条目
+(defun my-org-archive-done-tasks ()
+  &quot;归档当前文件中所有已完成的任务。&quot;
+  (interactive)
+  (org-map-entries
+   (lambda ()
+     (when (member (org-get-todo-state) '(&quot;DONE&quot; &quot;CANCELLED&quot;))
+       (org-archive-subtree)
+       (setq org-map-continue-from (point))))
+   nil 'tree))
+</code></pre>
+
+<h2>实用配置</h2>
+
+<h3>完整的归档配置示例</h3>
+
+<pre class="code-block code-src"><code>;; 重新归档目标
+(setq org-refile-targets
+      '((org-agenda-files :maxlevel . 2)
+        (&quot;projects.org&quot; :maxlevel . 1)))
+
+;; 使用完整路径显示目标
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+
+;; 允许创建新节点
+(setq org-refile-allow-creating-parent-nodes t)
+
+;; 归档位置设置
+(setq org-archive-location
+      &quot;~/Documents/org/archive/%s_archive::datetree/&quot;)
+
+;; 重新归档后自动更新
+(add-hook 'org-refile-after-hook
+          (lambda ()
+            (when (buffer-modified-p)
+              (save-buffer))))
+</code></pre>
+
+<h3>重新归档的 agenda 集成</h3>
+
+<p>在 agenda 视图中直接重新归档：</p>
+
+<pre class="code-block code-example"><code>在 agenda 视图中：
+r    → 重新归档当前条目
+     → 选择目标位置后条目被移动
+</code></pre>
+
+<h3>自动归档设置</h3>
+
+<pre class="code-block code-src"><code>;; 保存时自动归档已完成的条目
+(defun my-auto-archive-done ()
+  &quot;自动归档已完成的条目。&quot;
+  (when (and (org-entry-is-done-p)
+             (y-or-n-p &quot;归档此条目？&quot;))
+    (org-archive-subtree)))
+
+;; 标记完成时自动归档
+(setq org-log-done 'time)
+</code></pre>
+
+<h2>归档最佳实践</h2>
+
+<h3>定期归档</h3>
+
+<p>建议定期归档已完成的任务：</p>
+
+<p>1. 每天结束时归档当天完成的任务</p>
+<p>2. 每周归档已完成的项目</p>
+<p>3. 每月清理归档文件</p>
+
+<h3>归档文件组织</h3>
+
+<pre class="code-block code-example"><code>建议的归档目录结构：
+
+archive/
+├── 2024-archive.org      # 2024年归档
+├── 2023-archive.org      # 2023年归档
+└── projects-archive.org  # 项目归档
+</code></pre>
+
+<h3>归档与备份</h3>
+
+<pre class="code-block code-src"><code>;; 归档前自动备份
+(defun my-archive-with-backup ()
+  &quot;归档前创建备份。&quot;
+  (interactive)
+  (let ((backup-file (concat (buffer-file-name)
+                             &quot;.backup-&quot;
+                             (format-time-string &quot;%Y%m%d&quot;))))
+    (copy-file (buffer-file-name) backup-file t)
+    (org-archive-subtree)))
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

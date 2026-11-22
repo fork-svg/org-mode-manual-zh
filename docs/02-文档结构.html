@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档结构 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>文档结构</h1>
+
+<p>Org 文档使用大纲结构。标题（headlines）形成顶级结构，每个标题下可以有子标题、段落、列表等内容。</p>
+
+<h2>标题</h2>
+
+<p>标题是 Org 文档的基本结构单元。标题以星号开头：</p>
+
+<pre class="code-block code-example"><code>* 一级标题
+** 二级标题
+*** 三级标题
+**** 四级标题
+</code></pre>
+
+<p>一个标题至少需要一个星号，可以有多个。标题数量决定了层级深度。</p>
+
+<p>标题可以包含 TODO 关键字、标签和优先级：</p>
+
+<pre class="code-block code-example"><code>* TODO 带任务状态的标题
+* DONE 已完成的任务
+* TODO [#A] 高优先级任务   :work:urgent:
+</code></pre>
+
+<h2>可见性折叠</h2>
+
+<p>Org 模式的一个强大特性是可以折叠和展开大纲。这让您专注于当前正在处理的部分。</p>
+
+<p>主要命令：</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>TAB</code></td><td>切换当前条目的可见性</td></tr>
+<tr><td><code>S-TAB</code></td><td>全局切换可见性（三种状态循环）</td></tr>
+<tr><td><code>C-c C-r</code></td><td>显示当前条目的内容</td></tr>
+</tbody></table>
+
+<h3>全局和局部折叠</h3>
+
+<p><code>TAB</code> 在当前条目上循环三种状态：</p>
+
+<p>1. <strong>折叠</strong>：只显示标题</p>
+<p>2. <strong>子树</strong>：显示该标题下的所有子标题</p>
+<p>3. <strong>全部</strong>：显示所有文本</p>
+
+<p><code>S-TAB</code> 在整个文档中循环：</p>
+
+<p>1. <strong>折叠</strong>：只显示顶级标题</p>
+<p>2. <strong>子树</strong>：显示所有标题</p>
+<p>3. <strong>全部</strong>：显示所有内容</p>
+
+<h3>初始可见性</h3>
+
+<p>可以通过在文件开头添加 <code>STARTUP</code> 选项设置初始状态：</p>
+
+<pre class="code-block code-example"><code>#+STARTUP: fold        # 初始折叠
+#+STARTUP: showall     # 初始展开所有内容
+#+STARTUP: showeverything  # 显示所有内容
+</code></pre>
+
+<h2>移动</h2>
+
+<p>在标题间移动的命令：</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-n</code></td><td>下一个标题</td></tr>
+<tr><td><code>C-c C-p</code></td><td>上一个标题</td></tr>
+<tr><td><code>C-c C-f</code></td><td>下一个同级标题</td></tr>
+<tr><td><code>C-c C-b</code></td><td>上一个同级标题</td></tr>
+<tr><td><code>C-c C-u</code></td><td>上一级标题</td></tr>
+</tbody></table>
+
+<h2>结构编辑</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>M-RET</code></td><td>插入新标题</td></tr>
+<tr><td><code>M-S-RET</code></td><td>插入新 TODO 标题</td></tr>
+<tr><td><code>M-LEFT</code></td><td>提升标题（减少星号）</td></tr>
+<tr><td><code>M-RIGHT</code></td><td>降低标题（增加星号）</td></tr>
+<tr><td><code>M-S-UP</code></td><td>向上移动标题及其子树</td></tr>
+<tr><td><code>M-S-DOWN</code></td><td>向下移动标题及其子树</td></tr>
+</tbody></table>
+
+<h2>稀疏树</h2>
+
+<p>Org 可以根据条件显示"稀疏树"——只显示匹配条件的标题。</p>
+
+<p>主要命令：</p>
+
+<ul>
+<li><code>C-c /</code>：打开稀疏树命令前缀</li>
+<li><code>C-c / t TODO</code>：显示所有 TODO 状态为 TODO 的条目</li>
+<li><code>C-c / m work|urgent</code>：显示包含 work 或 urgent 标签的条目</li>
+</ul>
+
+<h2>纯列表</h2>
+
+<p>Org 支持纯列表（无序和有序）：</p>
+
+<pre class="code-block code-example"><code>- 无序列表项
+- 另一个列表项
+  - 子项
+  - 另一个子项
+
+1. 有序列表
+2. 第二项
+3. 第三项
+</code></pre>
+
+<p>在列表上：</p>
+
+<ul>
+<li><code>TAB</code>：折叠/展开列表项</li>
+<li><code>M-RET</code>：新建列表项</li>
+<li><code>M-S-RET</code>：新建 TODO 列表项</li>
+</ul>
+
+<h2>抽屉</h2>
+
+<p>抽屉（Drawers）用于存储隐藏的信息：</p>
+
+<pre class="code-block code-example"><code>* 一个条目
+:PROPERTIES:
+:CATEGORY: 工作
+:END:
+
+这是条目的内容。
+
+:LOGBOOK:
+- 2024-01-15: 创建
+:END:
+</code></pre>
+
+<p>常用抽屉：</p>
+
+<ul>
+<li><code>PROPERTIES</code>：存储属性</li>
+<li><code>LOGBOOK</code>：存储日志</li>
+</ul>
+
+<h2>块</h2>
+
+<p>Org 支持多种特殊块：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_QUOTE
+引用文本
+</code></pre>
+
+<pre class="code-block code-verse"><code>  保留空格的
+    诗歌格式
+</code></pre>
+
+<pre class="code-block code-example"><code>示例代码
+</code></pre>
+
+<pre class="code-block code-src"><code>;; 源代码块
+(message &quot;Hello!&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+        </main>
+    </div>
+</body>
+</html>

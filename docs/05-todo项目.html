@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO 项目 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>TODO 项目</h1>
+
+<p>Org 模式提供了强大的 TODO 列表管理功能。</p>
+
+<h2>基本 TODO 功能</h2>
+
+<p>在任何标题行中，可以用关键字标记 TODO 项：</p>
+
+<pre class="code-block code-example"><code>* TODO 编写手册
+* TODO 校对翻译
+* DONE 设置项目结构
+</code></pre>
+
+<p>默认关键字为 <code>TODO</code> 和 <code>DONE</code>。</p>
+
+<h2>切换 TODO 状态</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-t</code></td><td>在当前状态和 DONE 之间切换</td></tr>
+<tr><td><code>S-LEFT</code></td><td>前一个 TODO 状态</td></tr>
+<tr><td><code>S-RIGHT</code></td><td>下一个 TODO 状态</td></tr>
+</tbody></table>
+
+<p>也可以直接使用数字选择状态：<code>C-c C-t 1</code> 选择第一个状态。</p>
+
+<h2>扩展 TODO 关键字</h2>
+
+<p>可以自定义多个 TODO 关键字：</p>
+
+<pre class="code-block code-example"><code>#+TODO: TODO(t) WAITING(w) | DONE(d) CANCELED(c)
+</code></pre>
+
+<p><code>|</code> 分隔未完成的和已完成的状态。</p>
+
+<h3>TODO 关键字作为工作流状态</h3>
+
+<pre class="code-block code-example"><code>#+TODO: TODO IN-PROGRESS REVIEW | DONE
+</code></pre>
+
+<p>表示工作流程：TODO → IN-PROGRESS → REVIEW → DONE</p>
+
+<h3>TODO 关键字作为类型</h3>
+
+<pre class="code-block code-example"><code>#+TYP_TODO: MEETING CALL EMAIL | COMPLETED
+</code></pre>
+
+<p>类型用于分类，不需要状态转换。</p>
+
+<h2>进度记录</h2>
+
+<h3>关闭条目</h3>
+
+<p>当 TODO 项变为 DONE 时，可以记录关闭时间：</p>
+
+<pre class="code-block code-example"><code>#+STARTUP: logdone
+</code></pre>
+
+<p>或按 <code>C-c C-x !</code>= 设置：</p>
+
+<ul>
+<li><code>C-c C-x !</code> d=：记录关闭时间</li>
+<li><code>C-c C-x !</code> t=：记录时间戳</li>
+<li><code>C-c C-x !</code> !=：都记录</li>
+</ul>
+
+<h3>跟踪 TODO 状态变化</h3>
+
+<p>记录每次状态变化：</p>
+
+<pre class="code-block code-example"><code>#+STARTUP: lognotestate
+</code></pre>
+
+<p>状态变化会记录在 <code>LOGBOOK</code> 抽屉中：</p>
+
+<pre class="code-block code-example"><code>* DONE 任务标题
+:LOGBOOK:
+- State &quot;DONE&quot;       from &quot;TODO&quot;       [2024-01-15 周一 10:30]
+:END:
+</code></pre>
+
+<h2>优先级</h2>
+
+<p>可以为 TODO 项设置优先级：</p>
+
+<pre class="code-block code-example"><code>* TODO [#A] 高优先级任务
+* TODO [#B] 普通任务
+* TODO [#C] 低优先级任务
+</code></pre>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c ,</code></td><td>设置优先级</td></tr>
+<tr><td><code>C-c , A</code></td><td>优先级 A（最高）</td></tr>
+<tr><td><code>C-c , B</code></td><td>优先级 B</td></tr>
+<tr><td><code>C-c , C</code></td><td>优先级 C（最低）</td></tr>
+<tr><td><code>C-c , ,</code></td><td>删除优先级</td></tr>
+</tbody></table>
+
+<h2>复选框</h2>
+
+<p>在标题下使用复选框跟踪子任务：</p>
+
+<pre class="code-block code-example"><code>* TODO 大项目 [2/4]
+** DONE 任务一
+** TODO 任务二
+** TODO 任务三
+** DONE 任务四
+</code></pre>
+
+<p>复选框语法：</p>
+
+<pre class="code-block code-example"><code>- [ ] 未完成
+- [X] 已完成
+- [-] 部分完成（自动）
+</code></pre>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-c</code></td><td>在复选框上切换状态</td></tr>
+<tr><td><code>M-S-RET</code></td><td>新建带复选框的项目</td></tr>
+</tbody></table>
+
+<p>父标题会自动显示完成进度（如 <code>[2/4]</code> 表示 4 个中的 2 个）。</p>
+
+<h2>TODO 依赖</h2>
+
+<p>设置子任务依赖：</p>
+
+<pre class="code-block code-example"><code>* TODO 项目 [0/2]
+:PROPERTIES:
+:BLOCKED: 真
+:END:
+** TODO 子任务一
+** TODO 子任务二
+</code></pre>
+
+<p>启用依赖：</p>
+
+<pre class="code-block code-example"><code>(setq org-enforce-todo-dependencies t)
+</code></pre>
+
+<p>父任务在子任务全部完成前保持阻塞状态。</p>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>标签 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>标签</h1>
+
+<p>标签是一种给标题分类的方法。</p>
+
+<h2>标签语法</h2>
+
+<p>标签放在标题行的末尾，用冒号分隔：</p>
+
+<pre class="code-block code-example"><code>* 会议 :work:meeting:
+* 购物 :personal:errands:
+* 写报告 :work:urgent:
+</code></pre>
+
+<h2>标签继承</h2>
+
+<p>子标题继承父标题的标签：</p>
+
+<pre class="code-block code-example"><code>* 项目A :project:
+** 任务1 :task:
+** 任务2 :task:urgent:
+</code></pre>
+
+<p>任务1 实际上有标签 <code>project:task:</code></p>
+<p>任务2 有标签 <code>project:task:urgent:</code></p>
+
+<h2>设置标签</h2>
+
+<h3>全局标签</h3>
+
+<p>在文件开头定义可用标签：</p>
+
+<pre class="code-block code-example"><code>#+TAGS: work home computer phone
+</code></pre>
+
+<h3>标签快捷键</h3>
+
+<p>可以定义标签快捷键：</p>
+
+<pre class="code-block code-example"><code>#+TAGS: @work(w) @home(h) @computer(c)
+</code></pre>
+
+<p>按 <code>C-c C-c</code> 可以快速选择标签。</p>
+
+<h3>标签层级</h3>
+
+<p>可以定义标签层级：</p>
+
+<pre class="code-block code-example"><code>#+TAGS: { @work : @office @home @travel }
+</code></pre>
+
+<h2>标签搜索</h2>
+
+<table class="org-table">
+<tr><td>命令</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c /</code></td><td>稀疏树命令前缀</td></tr>
+<tr><td><code>C-c / m</code></td><td>按标签匹配</td></tr>
+</tbody></table>
+
+<p>匹配语法：</p>
+
+<ul>
+<li><code>work</code>：包含 work 标签</li>
+<li><code>work+urgent</code>：同时包含 work 和 urgent</li>
+<li><code>work|home</code>：包含 work 或 home</li>
+<li><code>work-home</code>：包含 work 但不包含 home</li>
+</ul>
+
+<p>示例：</p>
+
+<pre class="code-block code-example"><code>C-c / m work+urgent
+C-c / m work|home-project
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

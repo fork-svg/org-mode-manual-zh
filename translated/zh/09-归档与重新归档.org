@@ -1,0 +1,356 @@
+* 归档与重新归档
+
+Org 模式提供了强大的条目整理功能：重新归档（Refiling）用于移动条目到不同位置，归档（Archiving）用于保存已完成的条目。
+
+** 重新归档
+
+重新归档是将条目从一个位置移动到另一个位置的操作。常用于将 TODO 项移到对应的项目文件中。
+
+*** 基本用法
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-w= | 重新归档当前条目 |
+| =C-u C-c C-w= | 重新归档并预览目标 |
+
+按 =C-c C-w= 后，Org 会显示一个目标列表供选择。
+
+*** 目标文件设置
+
+设置重新归档的目标文件：
+
+#+BEGIN_SRC emacs-lisp
+;; 指定目标文件列表
+(setq org-refile-targets
+      '(("work.org" :maxlevel . 1)
+        ("projects.org" :maxlevel . 2)
+        ("archive.org" :maxlevel . 1)))
+#+END_EXAMPLE
+
+=:maxlevel= 指定扫描到第几级标题作为目标。
+
+*** 目标文件的其他设置
+
+#+BEGIN_SRC emacs-lisp
+;; 使用当前 agenda 文件作为目标
+(setq org-refile-targets
+      '((org-agenda-files :maxlevel . 1)))
+
+;; 使用特定标签作为目标
+(setq org-refile-targets
+      '(("projects.org" :tag . "PROJECT")))
+
+;; 使用 TODO 关键字作为目标
+(setq org-refile-targets
+      '(("tasks.org" :todo . "PROJECT")))
+#+END_EXAMPLE
+
+*** 目标缓存
+
+当目标文件较多时，可以缓存目标以提高速度：
+
+#+BEGIN_SRC emacs-lisp
+;; 启用目标缓存
+(setq org-refile-use-cache t)
+
+;; 清除缓存
+;; M-x org-refile-cache-clear
+#+END_EXAMPLE
+
+*** 目标排序
+
+#+BEGIN_SRC emacs-lisp
+;; 按文件顺序排序（默认）
+(setq org-refile-use-outline-path 'file)
+
+;; 显示完整路径
+(setq org-refile-use-outline-path t)
+
+;; 按字母排序
+(setq org-outline-path-complete-in-steps nil)
+#+END_SRC
+
+*** 重新归档示例
+
+假设有一个待办事项文件：
+
+#+BEGIN_EXAMPLE
+* 收件箱
+** 给客户发邮件
+** 准备季度报告
+** 预约牙医
+** 更新网站
+#+END_EXAMPLE
+
+按 =C-c C-w= 后可以选择将每个条目移到对应的文件中：
+
+- "给客户发邮件" → =work.org= 的 =邮件= 分类下
+- "预约牙医" → =personal.org= 的 =健康= 分类下
+- "更新网站" → =projects.org= 的 =网站= 项目下
+
+*** 创建新目标
+
+如果目标位置不存在，可以在重新归档时创建：
+
+#+BEGIN_SRC emacs-lisp
+;; 允许创建新的目标节点
+(setq org-refile-allow-creating-parent-nodes t)
+#+END_EXAMPLE
+
+设置为 =t= 时，可以在现有目标下创建新的子节点。设置为 ='verbose= 时会显示确认提示。
+
+*** 重新归档后的操作
+
+#+BEGIN_SRC emacs-lisp
+;; 重新归档后自动跳转
+(setq org-refile-keep-previous-window-config nil)
+#+END_SRC
+
+*** 验证目标
+
+可以限制重新归档只能到达特定的位置：
+
+#+BEGIN_SRC emacs-lisp
+;; 只允许归档到特定的最大层级
+(setq org-refile-target-verify-function
+      (lambda ()
+        (not (org-entry-is-done-p))))
+#+END_SRC
+
+** 归档
+
+归档用于将已完成或不再需要的条目移到一个特殊的归档位置，保持主文件的整洁。
+
+*** 归档策略
+
+Org 支持多种归档策略：
+
+1. 同文件归档（sibling）
+2. 同级归档（tree）
+3. 外部文件归档（file）
+
+*** 同文件归档
+
+归档到同一文件末尾：
+
+#+BEGIN_EXAMPLE
+#+ARCHIVE: ::* 已归档
+
+* 活跃项目
+** DONE 完成的任务1
+** DONE 完成的任务2
+
+* 已归档
+** DONE 完成的任务1
+** DONE 完成的任务2
+#+END_EXAMPLE
+
+=::*= 表示归档到同一文件中标题为 "已归档" 的一级标题下。
+
+*** 外部文件归档
+
+归档到外部文件：
+
+#+BEGIN_EXAMPLE
+#+ARCHIVE: ~/Documents/archive.org::
+
+或归档到特定文件中的标题：
+#+ARCHIVE: ~/Documents/archive.org::* 2024年归档
+#+END_EXAMPLE
+
+*** 同级归档
+
+将条目的子级归档到同级标题下：
+
+#+BEGIN_EXAMPLE
+#+ARCHIVE: ::*
+
+* 项目A
+** DONE 已完成任务1
+** DONE 已完成任务2
+
+* 项目A 归档
+** DONE 已完成任务1
+** DONE 已完成任务2
+#+END_EXAMPLE
+
+*** 归档命令
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-x C-a= | 归档当前条目 |
+| =C-c C-x C-s= | 归档并标记完成 |
+| =C-u C-c C-x C-a= | 切换归档显示 |
+
+*** 归档前的确认
+
+#+BEGIN_SRC emacs-lisp
+;; 设置归档确认方式
+(setq org-archive-confirm t)
+#+END_SRC
+
+*** 默认归档设置
+
+#+BEGIN_SRC emacs-lisp
+;; 全局默认归档位置
+(setq org-archive-location
+      "~/Documents/org/archive/%s_archive::")
+
+;; 使用日期组织归档
+(setq org-archive-location
+      "~/Documents/org/archive/%s_archive::datetree/")
+#+END_SRC
+
+=%s= 会被替换为原文件名。
+
+*** 使用日期树归档
+
+按日期组织归档文件：
+
+#+BEGIN_EXAMPLE
+#+ARCHIVE: ~/archive.org::datetree/
+
+或在全局设置：
+(setq org-archive-location
+      "~/archive.org::datetree/")
+#+END_EXAMPLE
+
+归档后条目会自动放到对应日期的位置：
+
+#+BEGIN_EXAMPLE
+* 2024
+** 2024-01 一月
+*** 2024-01-15
+**** DONE 已完成的任务
+#+END_EXAMPLE
+
+** 归档显示与管理
+
+*** 显示归档条目
+
+#+BEGIN_SRC emacs-lisp
+;; 在 agenda 中显示归档条目
+(setq org-agenda-archives-mode t)
+
+;; 只在特定视图中显示
+(setq org-agenda-archives-mode 'files)
+#+END_SRC
+
+在 agenda 视图中：
+
+| 快捷键 | 功能 |
+|--------+------|
+| =v a= | 切换归档显示模式 |
+| =v A= | 仅显示归档条目 |
+
+*** 取消归档
+
+取消归档将条目移回原位置：
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-x C-a= (在归档条目上) | 取消归档 |
+
+*** 批量归档
+
+可以批量归档多个条目：
+
+#+BEGIN_SRC emacs-lisp
+;; 批量归档所有 DONE 状态的条目
+(defun my-org-archive-done-tasks ()
+  "归档当前文件中所有已完成的任务。"
+  (interactive)
+  (org-map-entries
+   (lambda ()
+     (when (member (org-get-todo-state) '("DONE" "CANCELLED"))
+       (org-archive-subtree)
+       (setq org-map-continue-from (point))))
+   nil 'tree))
+#+END_SRC
+
+** 实用配置
+
+*** 完整的归档配置示例
+
+#+BEGIN_SRC emacs-lisp
+;; 重新归档目标
+(setq org-refile-targets
+      '((org-agenda-files :maxlevel . 2)
+        ("projects.org" :maxlevel . 1)))
+
+;; 使用完整路径显示目标
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+
+;; 允许创建新节点
+(setq org-refile-allow-creating-parent-nodes t)
+
+;; 归档位置设置
+(setq org-archive-location
+      "~/Documents/org/archive/%s_archive::datetree/")
+
+;; 重新归档后自动更新
+(add-hook 'org-refile-after-hook
+          (lambda ()
+            (when (buffer-modified-p)
+              (save-buffer))))
+#+END_SRC
+
+*** 重新归档的 agenda 集成
+
+在 agenda 视图中直接重新归档：
+
+#+BEGIN_EXAMPLE
+在 agenda 视图中：
+r    → 重新归档当前条目
+     → 选择目标位置后条目被移动
+#+END_EXAMPLE
+
+*** 自动归档设置
+
+#+BEGIN_SRC emacs-lisp
+;; 保存时自动归档已完成的条目
+(defun my-auto-archive-done ()
+  "自动归档已完成的条目。"
+  (when (and (org-entry-is-done-p)
+             (y-or-n-p "归档此条目？"))
+    (org-archive-subtree)))
+
+;; 标记完成时自动归档
+(setq org-log-done 'time)
+#+END_SRC
+
+** 归档最佳实践
+
+*** 定期归档
+
+建议定期归档已完成的任务：
+
+1. 每天结束时归档当天完成的任务
+2. 每周归档已完成的项目
+3. 每月清理归档文件
+
+*** 归档文件组织
+
+#+BEGIN_EXAMPLE
+建议的归档目录结构：
+
+archive/
+├── 2024-archive.org      # 2024年归档
+├── 2023-archive.org      # 2023年归档
+└── projects-archive.org  # 项目归档
+#+END_EXAMPLE
+
+*** 归档与备份
+
+#+BEGIN_SRC emacs-lisp
+;; 归档前自动备份
+(defun my-archive-with-backup ()
+  "归档前创建备份。"
+  (interactive)
+  (let ((backup-file (concat (buffer-file-name)
+                             ".backup-"
+                             (format-time-string "%Y%m%d"))))
+    (copy-file (buffer-file-name) backup-file t)
+    (org-archive-subtree)))
+#+END_SRC

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日程视图 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>日程视图</h1>
+
+<p>日程视图是 Org 模式的核心功能，用于查看和管理所有任务。</p>
+
+<h2>日程文件</h2>
+
+<p>首先设置要包含在日程中的文件：</p>
+
+<pre class="code-block code-src"><code>(setq org-agenda-files '(&quot;~/Documents/work.org&quot;
+                         &quot;~/Documents/personal.org&quot;
+                         &quot;~/Documents/projects/&quot;))
+</code></pre>
+
+<h2>日程调度器</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c a</code></td><td>打开日程调度器</td></tr>
+<tr><td><code>C-c a a</code></td><td>周/日视图</td></tr>
+<tr><td><code>C-c a t</code></td><td>全局 TODO 列表</td></tr>
+<tr><td><code>C-c a m</code></td><td>匹配标签和属性</td></tr>
+<tr><td><code>C-c a s</code></td><td>全文搜索</td></tr>
+<tr><td><code>C-c a /</code></td><td>多条件搜索</td></tr>
+<tr><td><code>C-c a e</code></td><td>导出日程</td></tr>
+</tbody></table>
+
+<h2>周/日视图</h2>
+
+<p>显示带有日期的条目：</p>
+
+<pre class="code-block code-example"><code>Week-agenda (W03):
+周一   1月15日 2024
+  work.org     10:00-11:00 计划: 团队会议
+  personal.org 14:00-15:00 计划: 牙医预约
+周二   1月16日 2024
+  work.org       截止日期: 提交季度报告
+周三   1月17日 2024
+  ...
+</code></pre>
+
+<h2>全局 TODO 列表</h2>
+
+<p>显示所有 TODO 项：</p>
+
+<pre class="code-block code-example"><code>Global TODO list:
+work.org:
+  TODO     完成年度报告
+  IN-PROG  代码审查
+  WAITING  等待客户回复
+
+personal.org:
+  TODO     预约牙医
+  TODO     购买生日礼物
+</code></pre>
+
+<p>可以按标签或状态过滤：</p>
+
+<ul>
+<li><code>C-c a t TODO</code>：只显示 TODO 状态</li>
+<li><code>C-c a t DONE</code>：只显示 DONE 状态</li>
+<li><code>C-c a t work</code>：只显示 work 标签</li>
+</ul>
+
+<h2>标签和属性匹配</h2>
+
+<p>按标签和属性匹配条目：</p>
+
+<pre class="code-block code-example"><code>C-c a m work+urgent
+C-c a m category=&quot;work&quot;+priority=&quot;A&quot;
+</code></pre>
+
+<h2>搜索视图</h2>
+
+<p>全文搜索：</p>
+
+<pre class="code-block code-example"><code>C-c a s
+搜索: 项目
+</code></pre>
+
+<h2>日程缓冲区命令</h2>
+
+<p>在日程缓冲区中：</p>
+
+<h3>导航</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>n</code></td><td>下一行</td></tr>
+<tr><td><code>p</code></td><td>上一行</td></tr>
+<tr><td><code>.</code></td><td>转到今天</td></tr>
+<tr><td><code>j</code></td><td>跳转到日期</td></tr>
+<tr><td><code>f</code></td><td>向前翻一周</td></tr>
+<tr><td><code>b</code></td><td>向后翻一周</td></tr>
+</tbody></table>
+
+<h3>修改任务</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>t</code></td><td>切换 TODO 状态</td></tr>
+<tr><td><code>,</code></td><td>设置优先级</td></tr>
+<tr><td><code>: </code></td><td>设置标签</td></tr>
+<tr><td><code>e</code></td><td>修改时间</td></tr>
+<tr><td><code>d</code></td><td>设置截止日期</td></tr>
+<tr><td><code>s</code></td><td>设置计划日期</td></tr>
+</tbody></table>
+
+<h3>其他</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>o</code></td><td>删除当前窗口</td></tr>
+<tr><td><code>x</code></td><td>删除当前条目</td></tr>
+<tr><td><code>C-c C-x C-c</code></td><td>标记为完成</td></tr>
+<tr><td><code>C-c C-o</code></td><td>打开链接</td></tr>
+<tr><td><code>SPC</code></td><td>显示条目</td></tr>
+</tbody></table>
+
+<h2>自定义视图</h2>
+
+<p>可以创建自定义视图：</p>
+
+<pre class="code-block code-src"><code>(setq org-agenda-custom-commands
+      '((&quot;w&quot; &quot;工作视图&quot;
+         ((agenda &quot;&quot; ((org-agenda-span 'week)))
+          (todo &quot;TODO&quot; ((org-agenda-files '(&quot;~/work.org&quot;))))
+          (todo &quot;IN-PROGRESS&quot;)))
+        (&quot;p&quot; &quot;个人视图&quot;
+         ((agenda &quot;&quot; ((org-agenda-files '(&quot;~/personal.org&quot;))))
+          (tags &quot;personal&quot;)))))
+</code></pre>
+
+<h2>分类</h2>
+
+<p>条目可以分类显示：</p>
+
+<pre class="code-block code-example"><code>* 工作任务
+  :PROPERTIES:
+  :CATEGORY: work
+  :END:
+
+* 个人事务
+  :PROPERTIES:
+  :CATEGORY: personal
+  :END:
+</code></pre>
+
+<h2>导出日程</h2>
+
+<table class="org-table">
+<tr><td>命令</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c a e</code></td><td>导出调度器</td></tr>
+<tr><td><code>C-c a e a</code></td><td>导出为文本</td></tr>
+<tr><td><code>C-c a e h</code></td><td>导出为 HTML</td></tr>
+<tr><td><code>C-c a e p</code></td><td>导出为 PDF</td></tr>
+<tr><td><code>C-c a e c</code></td><td>导出为 iCalendar</td></tr>
+</tbody></table>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,680 @@
+================================================================================
+Org Mode Manual - Chapter 12: Markup for Rich Contents
+Raw text content fetched from https://orgmode.org/manual/
+================================================================================
+
+--------------------------------------------------------------------------------
+Section: Paragraphs
+URL: https://orgmode.org/manual/Paragraphs.html
+--------------------------------------------------------------------------------
+
+Paragraphs (The Org Manual)
+
+Next: Emphasis and Monospace, Up: Markup for Rich Contents   [Contents][Index]
+
+12.1 Paragraphs ¶
+
+Paragraphs are separated by at least one empty line.  If you need to
+enforce a line break within a paragraph, use ‘\\’ at the end of
+a line.
+
+To preserve the line breaks, indentation and blank lines in a region,
+but otherwise use normal formatting, you can use this construct, which
+can also be used to format poetry.
+
+#+BEGIN_VERSE
+ Great clouds overhead
+ Tiny black birds rise and fall
+ Snow covers Emacs
+
+    ---AlexSchroeder
+#+END_VERSE
+
+When quoting a passage from another document, it is customary to
+format this as a paragraph that is indented on both the left and the
+right margin.  You can include quotations in Org documents like this:
+
+#+BEGIN_QUOTE
+Everything should be made as simple as possible,
+but not any simpler ---Albert Einstein
+#+END_QUOTE
+
+If you would like to center some text, do it like this:
+
+#+BEGIN_CENTER
+Everything should be made as simple as possible, \\
+but not any simpler
+#+END_CENTER
+
+Next: Emphasis and Monospace, Up: Markup for Rich Contents   [Contents][Index]
+
+--------------------------------------------------------------------------------
+Section: Emphasis and Monospace
+URL: https://orgmode.org/manual/Emphasis-and-Monospace.html
+--------------------------------------------------------------------------------
+
+Emphasis and Monospace (The Org Manual)
+
+Next: Subscripts and Superscripts, Previous: Paragraphs, Up: Markup for Rich Contents   [Contents][Index]
+
+12.2 Emphasis and Monospace ¶
+
+You can make words ‘*bold*’, ‘/italic/’, ‘_underlined_’, ‘=verbatim=’
+and ‘~code~’, and, if you must, ‘+strike-through+’.  Text in the code
+and verbatim string is not processed for Org specific syntax; it is
+exported verbatim.  Org provides a single command as entry point for
+inserting the marker character.
+
+C-c C-x C-f (
+org-emphasize
+) ¶
+
+Prompt for a marker character and insert or change an emphasis.  If
+there is an active region, change that region to a new emphasis.  If
+there is no region, just insert the marker characters and position
+the cursor between them.
+
+To turn off fontification for marked up text, you can set
+
+org-fontify-emphasized-text
+ to 
+nil
+.  To narrow down the list of
+the fontified markup syntax, you can customize
+
+org-emphasis-alist
+109.
+
+To hide the emphasis markup characters in your buffers, set
+
+org-hide-emphasis-markers
+ to 
+t
+.
+
+Sometimes, when marked text also contains the marker character itself,
+the result may be unsettling.  For example,
+
+/One may expect this whole sentence to be italicized, but the
+following ~user/?variable~ contains =/= character, which effectively
+stops emphasis there./
+
+You can use zero width space to help Org sorting out the ambiguity.
+See Escape Character for more details.
+
+Footnotes
+
+(109)
+
+The markup will still be recognized.  Just
+not highlighted visually in Emacs.
+
+Next: Subscripts and Superscripts, Previous: Paragraphs, Up: Markup for Rich Contents   [Contents][Index]
+
+--------------------------------------------------------------------------------
+Section: Subscripts and Superscripts
+URL: https://orgmode.org/manual/Subscripts-and-Superscripts.html
+--------------------------------------------------------------------------------
+
+Subscripts and Superscripts (The Org Manual)
+
+Next: Special Symbols, Previous: Emphasis and Monospace, Up: Markup for Rich Contents   [Contents][Index]
+
+12.3 Subscripts and Superscripts ¶
+
+‘^’ and ‘_’ are used to indicate super- and subscripts.  To increase
+the readability of ASCII text, it is not necessary, but OK, to
+surround multi-character sub- and superscripts with curly braces.  For
+example
+
+The radius of the sun is R_sun = 6.96 x 10^8 m.  On the other hand,
+the radius of Alpha Centauri is R_{Alpha Centauri} = 1.28 x R_{sun}.
+
+If you write a text where the underscore is often used in a different
+context, Org’s convention to always interpret these as subscripts can
+get in your way.  Configure the variable 
+org-use-sub-superscripts
+
+and/or 
+org-export-with-sub-superscripts
+ to change this convention.
+For example, when setting these variables to 
+{}
+, ‘a_b’ is not
+displayed/exported110 as a subscript, but ‘a_{b}’ is.
+
+You can set both 
+org-use-sub-superscripts
+
+org-export-with-sub-superscripts
+ in a file using the export option
+‘^:’ (see Export Settings).  For example,
+‘#+OPTIONS: ^:{}’ sets the two options to 
+{}
+ and limits super- and
+subscripts to the curly bracket notation.
+
+You can also toggle the visual display of super- and subscripts:
+
+C-c C-x \ (
+org-toggle-pretty-entities
+) ¶
+
+This command formats sub- and superscripts in a WYSIWYM way.
+
+Set both 
+org-pretty-entities
+ and
+
+org-pretty-entities-include-sub-superscripts
+ to 
+t
+ to start with
+super- and subscripts visually interpreted as specified by the
+option 
+org-use-sub-superscripts
+.
+
+Footnotes
+
+(110)
+
+The underlying markup still remains a
+sub/superscript.  Only the visual display and export behavior
+changes.
+
+Next: Special Symbols, Previous: Emphasis and Monospace, Up: Markup for Rich Contents   [Contents][Index]
+
+--------------------------------------------------------------------------------
+Section: Special Symbols
+URL: https://orgmode.org/manual/Special-Symbols.html
+--------------------------------------------------------------------------------
+
+Special Symbols (The Org Manual)
+
+Next: Embedded LaTeX, Previous: Subscripts and Superscripts, Up: Markup for Rich Contents   [Contents][Index]
+
+12.4 Special Symbols ¶
+
+You can use LaTeX-like syntax to insert special symbols—named
+entities—like ‘\alpha’ to indicate the Greek letter, or ‘\to’ to indicate
+an arrow.  Completion for these symbols is available, just type ‘\’
+and maybe a few letters, and press M-TAB to see possible
+completions.  If you need such a symbol inside a word, terminate it
+with a pair of curly brackets.  For example
+
+Pro tip: Given a circle \Gamma of diameter d, the length of its
+circumference is \pi{}d.
+
+A large number of entities is provided, with names taken from both
+HTML and LaTeX; you can comfortably browse the complete list from
+a dedicated buffer using the command 
+org-entities-help
+.  It is also
+possible to provide your own special symbols in the variable
+
+org-entities-user
+.
+
+During export, these symbols are transformed into the native format of
+the exporter backend.  Strings like ‘\alpha’ are exported as ‘&alpha;’ in
+the HTML output, and as ‘\(\alpha\)’ in the LaTeX output.  Similarly, ‘\nbsp’
+becomes ‘&nbsp;’ in HTML and ‘~’ in LaTeX.
+
+If you would like to see entities displayed as UTF-8 characters, use
+the following command111:
+
+C-c C-x \ (
+org-toggle-pretty-entities
+) ¶
+
+Toggle display of entities as UTF-8 characters.  This does not
+change the buffer content which remains plain ASCII, but it overlays
+the UTF-8 character for display purposes only.
+
+In addition to regular entities defined above, Org exports in a
+special way112 the following commonly used character
+combinations: ‘\-’ is treated as a shy hyphen, ‘--’ and ‘---’ are
+converted into dashes, and ‘...’ becomes a compact set of dots.
+
+Footnotes
+
+(111)
+
+You can turn this on by default by setting
+the variable 
+org-pretty-entities
+, or on a per-file basis with the
+‘STARTUP’ option ‘entitiespretty’.
+
+(112)
+
+This behavior can be disabled with ‘-’ export setting
+(see Export Settings).
+
+Next: Embedded LaTeX, Previous: Subscripts and Superscripts, Up: Markup for Rich Contents   [Contents][Index]
+
+[ERROR: Failed to fetch https://orgmode.org/manual/Embedded-LaTeX.html]
+
+--------------------------------------------------------------------------------
+Section: Literal Examples
+URL: https://orgmode.org/manual/Literal-Examples.html
+--------------------------------------------------------------------------------
+
+Literal Examples (The Org Manual)
+
+Next: Images and link previews, Previous: Embedded LaTeX, Up: Markup for Rich Contents   [Contents][Index]
+
+12.6 Literal Examples ¶
+
+You can include literal examples that should not be subjected to
+markup.  Such examples are typeset in monospace, so this is well
+suited for source code and similar examples.
+
+#+BEGIN_EXAMPLE
+  Some example from a text file.
+#+END_EXAMPLE
+
+There is one limitation, however.  You must insert a comma right
+before lines starting with either ‘*’, ‘,*’, ‘#+’ or ‘,#+’, as those
+may be interpreted as outlines nodes or some other special syntax.
+Org transparently strips these additional commas whenever it accesses
+the contents of the block.
+
+#+BEGIN_EXAMPLE
+,* I am no real headline
+#+END_EXAMPLE
+
+For simplicity when using small examples, you can also start the
+example lines with a colon followed by a space.  There may also be
+additional whitespace before the colon:
+
+Here is an example
+   : Some example from a text file.
+
+If the example is source code from a programming language, or any
+other text that can be marked up by Font Lock in Emacs, you can ask
+for the example to look like the fontified Emacs buffer117.  This
+is done with the code block, where you also need to specify the name
+of the major mode that should be used to fontify the example118,
+see Structure Templates for shortcuts to easily insert code blocks.
+
+#+BEGIN_SRC emacs-lisp
+  (defun org-xor (a b)
+    "Exclusive or."
+    (if a (not b) b))
+#+END_SRC
+
+Both in ‘example’ and in ‘src’ snippets, you can add a ‘-n’ switch to
+the ‘#+BEGIN’ line119, to get the lines of the example numbered.
+The ‘-n’ takes an optional numeric argument specifying the starting
+line number of the block.  If you use a ‘+n’ switch, the numbering
+from the previous numbered snippet is continued in the current one.
+The ‘+n’ switch can also take a numeric argument.  This adds the value
+of the argument to the last line of the previous block to determine
+the starting line number.
+
+#+BEGIN_SRC emacs-lisp -n 20
+  ;; This exports with line number 20.
+  (message "This is line 21")
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp +n 10
+  ;; This is listed as line 31.
+  (message "This is line 32")
+#+END_SRC
+
+In literal examples, Org interprets strings like ‘(ref:name)’ as
+labels, and use them as targets for special hyperlinks like
+‘[[(name)]]’—i.e., the reference name enclosed in single
+parentheses.  In HTML, hovering the mouse over such a link
+remote-highlights the corresponding code line120, which is kind of cool.
+
+You can also add a ‘-r’ switch which removes the labels from the
+source code121.  With the ‘-n’
+switch, links to these references are labeled by the line numbers from
+the code listing.  Otherwise, links use the labels with no parentheses.
+Here is an example:
+
+#+BEGIN_SRC emacs-lisp -n -r
+  (save-excursion                 (ref:sc)
+     (goto-char (point-min))      (ref:jump)
+#+END_SRC
+In line [[(sc)]] we remember the current position. [[(jump)][Line (jump)]]
+jumps to point-min.
+
+Source code and examples may be indented in order to align nicely
+with the surrounding text, and in particular with plain list structure
+(see Plain Lists).  By default, Org only retains the relative
+indentation between lines, e.g., when exporting the contents of the
+block.  However, you can use the ‘-i’ switch to also preserve the
+global indentation, if it does matter.  See Editing Source Code.
+
+If the syntax for the label format conflicts with the language syntax,
+use a ‘-l’ switch to change the format, for example
+
+#+BEGIN_SRC pascal -n -r -l "((%s))"
+
+See also the variable 
+org-coderef-label-format
+.
+
+HTML export also allows examples to be published as text areas (see
+Text areas in HTML export).
+
+Because the ‘#+BEGIN’ … ‘#+END’ patterns need to be added so often,
+a shortcut is provided (see Structure Templates).
+
+C-c ' (
+org-edit-special
+) ¶
+
+Edit the source code example at point in its native mode.  This
+works by switching to a temporary buffer with the source code.  You
+need to exit by pressing C-c ' again.  The edited version
+then replaces the old version in the Org buffer.  Fixed-width
+regions—where each line starts with a colon followed by a
+space—are edited using Artist mode122 to allow
+creating ASCII drawings easily.  Using this command in an empty line
+creates a new fixed-width region.
+
+Calling 
+org-store-link
+ (see Handling Links) while editing a source
+code example in a temporary buffer created with C-c '
+prompts for a label.  Make sure that it is unique in the current
+buffer, and insert it with the proper formatting like ‘(ref:label)’ at
+the end of the current line.  Then the label is stored as a link
+‘(label)’, for retrieval with C-c C-l.
+
+Footnotes
+
+(117)
+
+This works automatically for the HTML backend (it requires
+version 1.34 of the ‘htmlize.el’ package, which you need to install).
+Fontified code chunks in LaTeX can be achieved using either the
+listings LaTeX package, minted LaTeX package, or by using
+engrave-faces.  Refer to 
+org-latex-src-block-backend
+ for details.
+
+(118)
+
+Source code in code blocks may also be evaluated either
+interactively or on export.  See Working with Source Code for more
+information on evaluating code blocks.
+
+(119)
+
+In the ‘src’ snippets, switches must be placed
+right after the language name and before the header arguments
+
+(120)
+
+This requires some
+JavaScript which is not automatically included in the HTML output:
+you have to customize the variable ‘org-html-head-include-scripts’ to
+
+t
+ to have it included (it is 
+nil
+ by default).
+
+(121)
+
+Adding ‘-k’ to ‘-n -r’ keeps the labels in the
+source code while using line numbers for the links, which might be
+useful to explain those in an Org mode example code.
+
+(122)
+
+You may select a different
+mode with the variable 
+org-edit-fixed-width-region-mode
+.
+
+Next: Images and link previews, Previous: Embedded LaTeX, Up: Markup for Rich Contents   [Contents][Index]
+
+--------------------------------------------------------------------------------
+Section: Images and Link Previews
+URL: https://orgmode.org/manual/Images-and-link-previews.html
+--------------------------------------------------------------------------------
+
+Images and link previews (The Org Manual)
+
+Next: Captions, Previous: Literal Examples, Up: Markup for Rich Contents   [Contents][Index]
+
+12.7 Images and link previews ¶
+
+Org mode can display previews of hyperlinks (see Hyperlinks)
+inside Org buffers.  By default, only image links123 can
+be previewed inline, where the images are displayed in place of the
+link path.
+
+You can customize the previews as described in Adding Hyperlink preview.  Link previews do not have to display images – any kind of
+display decoration (see (elisp)Overlay Properties) can be
+used.
+
+You can preview the supported link types in the whole buffer, in the
+current section, active region or at point with the following commands:
+
+C-c C-x C-v (
+org-link-preview
+) ¶
+
+Create inline previews for external links in the active region, if
+any; the link at point, if there is such; or in the current section
+otherwise.  With a prefix argument, clear link previews at point or
+in the current entry.  With a double prefix argument, preview all
+links in the buffer.  With triple prefix argument, hide previews for
+all links in the buffer.
+
+By default, only links without descriptions are previewed.  You
+can force displaying previews for all supported links (including
+links with descriptions) using a numeric argument of 
+1
+.  This
+will toggle all previews in the active region, the link at point
+or the current section.  A numeric prefix argument of 
+11
+ will
+toggle previews in the whole buffer instead.
+
+Org mode can display link previews automatically when opening
+buffers.  Either customize 
+org-startup-with-link-previews
+ or use
+the ‘#+STARTUP: linkpreviews’ keyword to enable previews for that
+specific buffer when opening it.  ‘#+STARTUP: nolinkpreviews’ will
+disable previews on startup in the buffer.
+
+C-c C-x C-M-v (
+org-link-preview-refresh
+) ¶
+
+Assure inline display of external link previews in the whole buffer
+and refresh them.
+
+M-x org-link-preview-region ¶
+
+Create inline previews for external links in the active region, or
+the buffer.  With a prefix argument, also preview links with a text
+description part.
+
+M-x org-link-preview-clear ¶
+
+Clear external link previews in the active region, or the buffer.
+
+Link previews can also be displayed when cycling the folding state.
+When the custom option 
+org-cycle-link-previews-display
+ is set,
+supported link types under the subtree (including images) will be
+displayed automatically.
+
+Images
+
+Footnotes
+
+(123)
+
+Image links are
+‘file:’ and ‘attachment:’ links to existing image files; Emacs can
+only display the linked images listed in 
+image-types
+ variable
+
+Next: Captions, Previous: Literal Examples, Up: Markup for Rich Contents   [Contents][Index]
+
+--------------------------------------------------------------------------------
+Section: Captions
+URL: https://orgmode.org/manual/Captions.html
+--------------------------------------------------------------------------------
+
+Captions (The Org Manual)
+
+Next: Horizontal Rules, Previous: Images and link previews, Up: Markup for Rich Contents   [Contents][Index]
+
+12.8 Captions ¶
+
+You can assign a caption to a specific part of a document by inserting
+a ‘CAPTION’ keyword immediately before it:
+
+#+CAPTION: This is the caption for the next table (or link)
+| ... | ... |
+|-----+-----|
+
+Optionally, the caption can take the form:
+
+#+CAPTION[Short caption]: Longer caption.
+
+Even though images and tables are prominent examples of captioned
+structures, the same caption mechanism can apply to many
+others—e.g., LaTeX equations, source code blocks.  Depending on the
+export backend, those may or may not be handled.
+
+--------------------------------------------------------------------------------
+Section: Horizontal Rules
+URL: https://orgmode.org/manual/Horizontal-Rules.html
+--------------------------------------------------------------------------------
+
+Horizontal Rules (The Org Manual)
+
+Next: Creating Footnotes, Previous: Captions, Up: Markup for Rich Contents   [Contents][Index]
+
+12.9 Horizontal Rules ¶
+
+A line consisting of only dashes, and at least 5 of them, is exported
+as a horizontal line.
+
+--------------------------------------------------------------------------------
+Section: Creating Footnotes
+URL: https://orgmode.org/manual/Creating-Footnotes.html
+--------------------------------------------------------------------------------
+
+Creating Footnotes (The Org Manual)
+
+Previous: Horizontal Rules, Up: Markup for Rich Contents   [Contents][Index]
+
+12.10 Creating Footnotes ¶
+
+A footnote is started by a footnote marker in square brackets in
+column 0, no indentation allowed.  It ends at the next footnote
+definition, headline, or after two consecutive empty lines.  The
+footnote reference is simply the marker in square brackets, inside
+text.  Markers always start with ‘fn:’.  For example:
+
+The Org website[fn:1] now looks a lot better than it used to.
+...
+[fn:50] The link is: https://orgmode.org
+
+Org mode extends the number-based syntax to named footnotes and
+optional inline definition.  Here are the valid references:
+
+‘[fn:NAME]’
+
+A named footnote reference, where NAME is a unique
+label word, or, for simplicity of automatic creation, a number.
+
+‘[fn:: This is the inline definition of this footnote]’
+
+An anonymous footnote where the definition is given directly at the
+reference point.
+
+‘[fn:NAME: a definition]’
+
+An inline definition of a footnote, which also specifies a name for
+the note.  Since Org allows multiple references to the same note,
+you can then use ‘[fn:NAME]’ to create additional references.
+
+Footnote labels can be created automatically, or you can create names
+yourself.  This is handled by the variable 
+org-footnote-auto-label
+
+and its corresponding ‘STARTUP’ keywords.  See the docstring of that
+variable for details.
+
+The following command handles footnotes:
+
+C-c C-x f
+
+The footnote action command.
+
+When point is on a footnote reference, jump to the definition.  When
+it is at a definition, jump to the—first—reference.
+
+Otherwise, create a new footnote.  Depending on the variable
+
+org-footnote-define-inline
+126, the
+definition is placed right into the text as part of the reference,
+or separately into the location determined by the variable
+
+org-footnote-section
+.
+
+When this command is called with a prefix argument, a menu of
+additional options is offered:
+
+sSort the footnote definitions by reference sequence.
+
+rRenumber the simple ‘fn:N’ footnotes.
+
+SShort for first r, then s action.
+
+nRename all footnotes into a ‘fn:1’ … ‘fn:n’ sequence.
+
+dDelete the footnote at point, including definition and references.
+
+Depending on the variable 
+org-footnote-auto-adjust
+127, renumbering and sorting footnotes can be
+automatic after each insertion or deletion.
+
+C-c C-c ¶
+
+If point is on a footnote reference, jump to the definition.  If it
+is at the definition, jump back to the reference.  When called at
+a footnote location with a prefix argument, offer the same menu as
+C-c C-x f.
+
+C-c C-o or mouse-1/2 ¶
+
+Footnote labels are also links to the corresponding definition or
+reference, and you can use the usual commands to follow these links.
+
+Footnotes
+
+(126)
+
+The corresponding in-buffer
+setting is: ‘#+STARTUP: fninline’ or ‘#+STARTUP: nofninline’.
+
+(127)
+
+The
+corresponding in-buffer options are ‘#+STARTUP: fnadjust’ and
+‘#+STARTUP: nofnadjust’.
+
+Previous: Horizontal Rules, Up: Markup for Rich Contents   [Contents][Index]

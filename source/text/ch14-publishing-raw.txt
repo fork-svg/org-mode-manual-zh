@@ -1,0 +1,188 @@
+================================================================================
+Chapter 14: Publishing - Raw Content from Org Mode Manual
+================================================================================
+
+--------------------------------------------------------------------------------
+SECTION: Configuration
+URL: https://orgmode.org/manual/Configuration.html
+--------------------------------------------------------------------------------
+
+Configuration (The Org Manual)
+
+
+Next: Uploading Files, Up: Publishing   [Contents][Index]
+
+
+14.1 Configuration ¶
+
+
+Publishing needs significant configuration to specify files,
+destination and many other properties of a project.
+
+
+The variable
+org-publish-project-alist
+
+
+Sources and destinations for files
+
+
+Selecting files
+
+
+Publishing action
+
+
+Options for the exporters
+
+
+Publishing links
+
+
+Generating a sitemap
+
+
+Generating an index
+
+--------------------------------------------------------------------------------
+SECTION: Uploading files
+URL: https://orgmode.org/manual/Uploading-files.html
+--------------------------------------------------------------------------------
+
+Uploading Files (The Org Manual)
+
+
+Next: Sample Configuration, Previous: Configuration, Up: Publishing   [Contents][Index]
+
+
+14.2 Uploading Files ¶
+
+
+For those people already utilizing third party sync tools such as
+Rsync or Unison, it might be preferable not to use the built-in remote
+publishing facilities of Org mode which rely heavily on Tramp.  Tramp,
+while very useful and powerful, tends not to be so efficient for
+multiple file transfer and has been known to cause problems under
+heavy usage.
+
+
+Specialized synchronization utilities offer several advantages.  In
+addition to timestamp comparison, they also do content and
+permissions/attribute checks.  For this reason you might prefer to
+publish your web to a local directory—possibly even in place with
+your Org files—and then use Unison or Rsync to do the
+synchronization with the remote host.
+
+
+Since Unison, for example, can be configured as to which files to
+transfer to a certain remote destination, it can greatly simplify the
+project publishing definition.  Simply keep all files in the correct
+location, process your Org files with
+org-publish
+ and let the
+synchronization tool do the rest.  You do not need, in this scenario,
+to include attachments such as JPG, CSS or PNG files in the project
+definition since the third-party tool syncs them.
+
+
+Publishing to a local directory is also much faster than to a remote
+one, so that you can more easily afford to republish entire projects.
+If you set
+org-publish-use-timestamps-flag
+ to
+nil
+, you gain the
+main benefit of re-including any changed external files such as source
+example files you might include with ‘INCLUDE’ keyword.  The timestamp
+mechanism in Org is not smart enough to detect if included files have
+been modified.
+
+
+Next: Sample Configuration, Previous: Configuration, Up: Publishing   [Contents][Index]
+
+--------------------------------------------------------------------------------
+SECTION: Sample Configuration
+URL: https://orgmode.org/manual/Sample-Configuration.html
+--------------------------------------------------------------------------------
+
+Sample Configuration (The Org Manual)
+
+
+Next: Triggering Publication, Previous: Uploading Files, Up: Publishing   [Contents][Index]
+
+
+14.3 Sample Configuration ¶
+
+
+Below we provide two example configurations.  The first one is
+a simple project publishing only a set of Org files.  The second
+example is more complex, with a multi-component project.
+
+
+Example: simple publishing configuration
+
+
+Example: complex publishing configuration
+
+--------------------------------------------------------------------------------
+SECTION: Triggering Publication
+URL: https://orgmode.org/manual/Triggering-Publication.html
+--------------------------------------------------------------------------------
+
+Triggering Publication (The Org Manual)
+
+
+Previous: Sample Configuration, Up: Publishing   [Contents][Index]
+
+
+14.4 Triggering Publication ¶
+
+
+Once properly configured, Org can publish with the following commands:
+
+
+C-c C-e P x (
+org-publish
+) ¶
+
+
+Prompt for a specific project and publish all files that belong to
+it.
+
+
+C-c C-e P p (
+org-publish-current-project
+) ¶
+
+
+Publish the project containing the current file.
+
+
+C-c C-e P f (
+org-publish-current-file
+) ¶
+
+
+Publish only the current file.
+
+
+C-c C-e P a (
+org-publish-all
+) ¶
+
+
+Publish every project.
+
+
+Org uses timestamps to track when a file has changed.  The above
+functions normally only publish changed files.  You can override this
+and force publishing of all files by giving a prefix argument to any
+of the commands above, or by customizing the variable
+
+org-publish-use-timestamps-flag
+.  This may be necessary in
+particular if files include other files via ‘SETUPFILE’ or ‘INCLUDE’
+keywords.
+
+
+Previous: Sample Configuration, Up: Publishing   [Contents][Index]

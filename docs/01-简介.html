@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简介 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>简介</h1>
+
+<p>Org 是一个用于笔记记录和 TODO 列表管理的工具，基于 GNU Emacs。</p>
+
+<h2>概述</h2>
+
+<p>Org 模式是一个纯文本的大纲模式，用于笔记记录、TODO 列表管理和项目规划。</p>
+
+<p>Org 起源于 2003 年，最初只是一个简单的 TODO 列表管理器。随着时间推移，它发展成为一个功能强大的工具，可以：</p>
+
+<ul>
+<li>快速有效地捕获信息</li>
+<li>使用层级标题组织数据</li>
+<li>搜索和排序数据</li>
+<li>将 TODO 项目设置为不同的状态并添加注释</li>
+<li>计算统计信息</li>
+<li>管理日程安排</li>
+</ul>
+
+<h2>安装</h2>
+
+<h3>使用 Emacs 包管理系统</h3>
+
+<p>从 Emacs 22.1 开始，Org 模式包含在 Emacs 中。但是，如果您想使用最新版本，建议从 ELPA 安装。</p>
+
+<p>使用内置的 package.el：</p>
+
+<pre class="code-block code-example"><code>M-x list-packages RET
+</code></pre>
+
+<p>找到 <code>org</code> 并安装它。</p>
+
+<p>或者使用 <code>use-package</code>：</p>
+
+<pre class="code-block code-src"><code>(use-package org
+  :ensure t)
+</code></pre>
+
+<h3>使用 Org 的 Git 仓库</h3>
+
+<p>要获取最新的开发版本：</p>
+
+<pre class="code-block code-example"><code>git clone https://git.sr.ht/~bzg/org-mode
+</code></pre>
+
+<h2>激活</h2>
+
+<p>要在 Emacs 中激活 Org 模式，将以下代码添加到您的 Emacs 配置文件中：</p>
+
+<pre class="code-block code-src"><code>;; 设置 Org 模式的快捷键
+(global-set-key (kbd &quot;C-c l&quot;) #'org-store-link)
+(global-set-key (kbd &quot;C-c c&quot;) #'org-capture)
+(global-set-key (kbd &quot;C-c a&quot;) #'org-agenda)
+(global-set-key (kbd &quot;C-c b&quot;) #'org-switchb)
+</code></pre>
+
+<p>Org 模式默认对 <code>.org</code> 文件生效。</p>
+
+<h2>反馈</h2>
+
+<p>如果您发现问题或有建议，欢迎通过以下方式反馈：</p>
+
+<ul>
+<li>邮件列表：<a href="mailto:emacs-orgmode@gnu.org">emacs-orgmode@gnu.org</a></li>
+<li>问题追踪：https:/<em>orgmode.org</em>worg/org-contribute.html</li>
+</ul>
+        </main>
+    </div>
+</body>
+</html>

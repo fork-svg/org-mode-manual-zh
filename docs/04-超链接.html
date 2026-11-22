@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超链接 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>超链接</h1>
+
+<p>Org 支持多种类型的超链接。</p>
+
+<h2>链接格式</h2>
+
+<p>Org 链接的基本格式：</p>
+
+<pre class="code-block code-example"><code>[[URL][描述文本]]
+[[URL]]
+</code></pre>
+
+<p>如果省略描述，URL 将直接显示为链接。</p>
+
+<h2>内部链接</h2>
+
+<p>在文档内部链接标题：</p>
+
+<pre class="code-block code-example"><code>[[*标题名称]]
+[[*标题名称][链接描述]]
+</code></pre>
+
+<p>链接到特定 ID：</p>
+
+<pre class="code-block code-example"><code>* 目标标题
+:CUSTOM_ID: my-target
+
+[[#my-target][跳转到目标]]
+</code></pre>
+
+<h2>外部链接</h2>
+
+<h3>文件链接</h3>
+
+<pre class="code-block code-example"><code>[[file:其他文件.org]]
+[[file:其他文件.org::特定位置]]
+[[file:~/Documents/notes.org]]
+</code></pre>
+
+<h3>网页链接</h3>
+
+<pre class="code-block code-example"><code>[[https://orgmode.org][Org 官方网站]]
+[[https://gnu.org][GNU 项目]]
+</code></pre>
+
+<h3>邮件链接</h3>
+
+<pre class="code-block code-example"><code>[[mailto:user@example.com][发送邮件]]
+</code></pre>
+
+<h3>新闻链接</h3>
+
+<pre class="code-block code-example"><code>[[news:gnu.emacs.help]]
+[[nntp:news.gmane.io][Gmane]]
+</code></pre>
+
+<h2>链接操作</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-l</code></td><td>插入或编辑链接</td></tr>
+<tr><td><code>C-c C-o</code></td><td>打开链接</td></tr>
+<tr><td><code>M-RET</code></td><td>在新窗口打开链接</td></tr>
+<tr><td><code>C-c M-l</code></td><td>插入存储的链接</td></tr>
+</tbody></table>
+
+<h2>链接缩写</h2>
+
+<p>可以定义链接缩写简化输入：</p>
+
+<pre class="code-block code-example"><code>#+LINK: google https://www.google.com/search?q=%s
+#+LINK: wikipedia https://en.wikipedia.org/wiki/%s
+
+[[google:emacs][搜索 Emacs]]
+[[wikipedia:Emacs][维基百科]]
+</code></pre>
+
+<p>在配置文件中定义：</p>
+
+<pre class="code-block code-src"><code>(setq org-link-abbrev-alist
+      '((&quot;google&quot; . &quot;https://www.google.com/search?q=%s&quot;)
+        (&quot;wikipedia&quot; . &quot;https://en.wikipedia.org/wiki/%s&quot;)))
+</code></pre>
+
+<h2>存储链接</h2>
+
+<p>从其他缓冲区存储链接：</p>
+
+<p>1. 在其他缓冲区中按 <code>C-c l</code> 存储链接</p>
+<p>2. 在 Org 文件中按 <code>C-c C-l</code> 插入链接</p>
+
+<p>例如，可以从邮件、网页、代码行等位置存储链接。</p>
+        </main>
+    </div>
+</body>
+</html>
