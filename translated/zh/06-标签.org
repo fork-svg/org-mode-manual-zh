@@ -1,0 +1,75 @@
+* 标签
+
+标签是一种给标题分类的方法。
+
+** 标签语法
+
+标签放在标题行的末尾，用冒号分隔：
+
+#+BEGIN_EXAMPLE
+* 会议 :work:meeting:
+* 购物 :personal:errands:
+* 写报告 :work:urgent:
+#+END_EXAMPLE
+
+** 标签继承
+
+子标题继承父标题的标签：
+
+#+BEGIN_EXAMPLE
+* 项目A :project:
+** 任务1 :task:
+** 任务2 :task:urgent:
+#+END_EXAMPLE
+
+任务1 实际上有标签 =project:task:=
+任务2 有标签 =project:task:urgent:=
+
+** 设置标签
+
+*** 全局标签
+
+在文件开头定义可用标签：
+
+#+BEGIN_EXAMPLE
+#+TAGS: work home computer phone
+#+END_EXAMPLE
+
+*** 标签快捷键
+
+可以定义标签快捷键：
+
+#+BEGIN_EXAMPLE
+#+TAGS: @work(w) @home(h) @computer(c)
+#+END_EXAMPLE
+
+按 =C-c C-c= 可以快速选择标签。
+
+*** 标签层级
+
+可以定义标签层级：
+
+#+BEGIN_EXAMPLE
+#+TAGS: { @work : @office @home @travel }
+#+END_EXAMPLE
+
+** 标签搜索
+
+| 命令 | 功能 |
+|------+------|
+| =C-c /= | 稀疏树命令前缀 |
+| =C-c / m= | 按标签匹配 |
+
+匹配语法：
+
+- =work=：包含 work 标签
+- =work+urgent=：同时包含 work 和 urgent
+- =work|home=：包含 work 或 home
+- =work-home=：包含 work 但不包含 home
+
+示例：
+
+#+BEGIN_EXAMPLE
+C-c / m work+urgent
+C-c / m work|home-project
+#+END_EXAMPLE

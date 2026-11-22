@@ -1,0 +1,157 @@
+* 日程视图
+
+日程视图是 Org 模式的核心功能，用于查看和管理所有任务。
+
+** 日程文件
+
+首先设置要包含在日程中的文件：
+
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-files '("~/Documents/work.org"
+                         "~/Documents/personal.org"
+                         "~/Documents/projects/"))
+#+END_SRC
+
+** 日程调度器
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c a= | 打开日程调度器 |
+| =C-c a a= | 周/日视图 |
+| =C-c a t= | 全局 TODO 列表 |
+| =C-c a m= | 匹配标签和属性 |
+| =C-c a s= | 全文搜索 |
+| =C-c a /= | 多条件搜索 |
+| =C-c a e= | 导出日程 |
+
+** 周/日视图
+
+显示带有日期的条目：
+
+#+BEGIN_EXAMPLE
+Week-agenda (W03):
+周一   1月15日 2024
+  work.org     10:00-11:00 计划: 团队会议
+  personal.org 14:00-15:00 计划: 牙医预约
+周二   1月16日 2024
+  work.org       截止日期: 提交季度报告
+周三   1月17日 2024
+  ...
+#+END_EXAMPLE
+
+** 全局 TODO 列表
+
+显示所有 TODO 项：
+
+#+BEGIN_EXAMPLE
+Global TODO list:
+work.org:
+  TODO     完成年度报告
+  IN-PROG  代码审查
+  WAITING  等待客户回复
+
+personal.org:
+  TODO     预约牙医
+  TODO     购买生日礼物
+#+END_EXAMPLE
+
+可以按标签或状态过滤：
+
+- =C-c a t TODO=：只显示 TODO 状态
+- =C-c a t DONE=：只显示 DONE 状态
+- =C-c a t work=：只显示 work 标签
+
+** 标签和属性匹配
+
+按标签和属性匹配条目：
+
+#+BEGIN_EXAMPLE
+C-c a m work+urgent
+C-c a m category="work"+priority="A"
+#+END_EXAMPLE
+
+** 搜索视图
+
+全文搜索：
+
+#+BEGIN_EXAMPLE
+C-c a s
+搜索: 项目
+#+END_EXAMPLE
+
+** 日程缓冲区命令
+
+在日程缓冲区中：
+
+*** 导航
+
+| 快捷键 | 功能 |
+|--------+------|
+| =n= | 下一行 |
+| =p= | 上一行 |
+| =.= | 转到今天 |
+| =j= | 跳转到日期 |
+| =f= | 向前翻一周 |
+| =b= | 向后翻一周 |
+
+*** 修改任务
+
+| 快捷键 | 功能 |
+|--------+------|
+| =t= | 切换 TODO 状态 |
+| =,= | 设置优先级 |
+| =: = | 设置标签 |
+| =e= | 修改时间 |
+| =d= | 设置截止日期 |
+| =s= | 设置计划日期 |
+
+*** 其他
+
+| 快捷键 | 功能 |
+|--------+------|
+| =o= | 删除当前窗口 |
+| =x= | 删除当前条目 |
+| =C-c C-x C-c= | 标记为完成 |
+| =C-c C-o= | 打开链接 |
+| =SPC= | 显示条目 |
+
+** 自定义视图
+
+可以创建自定义视图：
+
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-custom-commands
+      '(("w" "工作视图"
+         ((agenda "" ((org-agenda-span 'week)))
+          (todo "TODO" ((org-agenda-files '("~/work.org"))))
+          (todo "IN-PROGRESS")))
+        ("p" "个人视图"
+         ((agenda "" ((org-agenda-files '("~/personal.org"))))
+          (tags "personal")))))
+#+END_SRC
+
+** 分类
+
+条目可以分类显示：
+
+#+BEGIN_EXAMPLE
+* 工作任务
+  :PROPERTIES:
+  :CATEGORY: work
+  :END:
+
+* 个人事务
+  :PROPERTIES:
+  :CATEGORY: personal
+  :END:
+#+END_EXAMPLE
+
+** 导出日程
+
+| 命令 | 功能 |
+|------+------|
+| =C-c a e= | 导出调度器 |
+| =C-c a e a= | 导出为文本 |
+| =C-c a e h= | 导出为 HTML |
+| =C-c a e p= | 导出为 PDF |
+| =C-c a e c= | 导出为 iCalendar |
