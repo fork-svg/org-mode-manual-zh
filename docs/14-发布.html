@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>发布</h1>
+
+<p>Org 支持将项目发布为网站或文档集合。</p>
+
+<h2>发布项目</h2>
+
+<p>发布项目定义了一组文件和导出设置：</p>
+
+<pre class="code-block code-src"><code>(setq org-publish-project-alist
+      '((&quot;org-notes&quot;
+         :base-directory &quot;~/Documents/org/&quot;
+         :base-extension &quot;org&quot;
+         :publishing-directory &quot;~/public_html/&quot;
+         :publishing-function org-html-publish-to-html
+         :with-section-numbers t
+         :with-toc t
+         :html-head &quot;&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;style.css\&quot; type=\&quot;text/css\&quot;/&gt;&quot;
+         :auto-sitemap t
+         :sitemap-filename &quot;index.org&quot;
+         :sitemap-title &quot;我的笔记&quot;)
+
+        (&quot;org-static&quot;
+         :base-directory &quot;~/Documents/org/&quot;
+         :base-extension &quot;css\\|js\\|png\\|jpg\\|gif\\|pdf&quot;
+         :publishing-directory &quot;~/public_html/&quot;
+         :publishing-function org-publish-attachment)
+
+        (&quot;website&quot; :components (&quot;org-notes&quot; &quot;org-static&quot;))))
+</code></pre>
+
+<h2>发布命令</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-e P x</code></td><td>发布项目</td></tr>
+<tr><td><code>C-c C-e P p</code></td><td>发布当前文件</td></tr>
+<tr><td><code>C-c C-e P f</code></td><td>强制发布当前文件</td></tr>
+<tr><td><code>C-c C-e P s</code></td><td>发布当前项目</td></tr>
+<tr><td><code>C-c C-e P S</code></td><td>强制发布当前项目</td></tr>
+<tr><td><code>C-c C-e P b</code></td><td>发布所有项目</td></tr>
+<tr><td><code>C-c C-e P B</code></td><td>强制发布所有项目</td></tr>
+</tbody></table>
+
+<h2>项目属性</h2>
+
+<h3>基本属性</h3>
+
+<ul>
+<li><code>:base-directory</code>：源文件目录</li>
+<li><code>:base-extension</code>：文件扩展名</li>
+<li><code>:publishing-directory</code>：发布目标目录</li>
+<li><code>:publishing-function</code>：发布函数</li>
+</ul>
+
+<h3>常用发布函数</h3>
+
+<ul>
+<li><code>org-html-publish-to-html</code>：导出为 HTML</li>
+<li><code>org-latex-publish-to-pdf</code>：导出为 PDF</li>
+<li><code>org-latex-publish-to-latex</code>：导出为 LaTeX</li>
+<li><code>org-publish-attachment</code>：复制附件文件</li>
+</ul>
+
+<h3>内容属性</h3>
+
+<ul>
+<li><code>:with-toc</code>：是否生成目录</li>
+<li><code>:section-numbers</code>：是否编号</li>
+<li><code>:with-author</code>：是否包含作者</li>
+<li><code>:html-head</code>：自定义 HTML head</li>
+</ul>
+
+<h3>站点地图</h3>
+
+<ul>
+<li><code>:auto-sitemap</code>：自动生成站点地图</li>
+<li><code>:sitemap-filename</code>：站点地图文件名</li>
+<li><code>:sitemap-title</code>：站点地图标题</li>
+<li><code>:sitemap-sort-folders</code>：文件夹排序方式</li>
+</ul>
+
+<h2>示例：简单网站</h2>
+
+<pre class="code-block code-src"><code>(setq org-publish-project-alist
+      '((&quot;blog&quot;
+         :base-directory &quot;~/blog/&quot;
+         :publishing-directory &quot;~/public_html/&quot;
+         :recursive t
+         :publishing-function org-html-publish-to-html
+         :html-head &quot;&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;/css/style.css\&quot; type=\&quot;text/css\&quot;/&gt;&quot;
+         :html-postamble nil
+         :auto-sitemap t
+         :sitemap-title &quot;我的博客&quot;
+         :sitemap-sort-folders last)))
+</code></pre>
+
+<h2>示例：复杂项目</h2>
+
+<pre class="code-block code-src"><code>(setq org-publish-project-alist
+      '((&quot;org-content&quot;
+         :base-directory &quot;~/projects/docs/&quot;
+         :base-extension &quot;org&quot;
+         :publishing-directory &quot;~/projects/public/&quot;
+         :publishing-function org-html-publish-to-html
+         :with-toc t
+         :html-head &quot;&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;css/main.css\&quot; type=\&quot;text/css\&quot;/&gt;&quot;)
+
+        (&quot;org-images&quot;
+         :base-directory &quot;~/projects/docs/images/&quot;
+         :base-extension &quot;jpg\\|png\\|gif\\|svg&quot;
+         :publishing-directory &quot;~/projects/public/images/&quot;
+         :publishing-function org-publish-attachment)
+
+        (&quot;org-css&quot;
+         :base-directory &quot;~/projects/docs/css/&quot;
+         :base-extension &quot;css&quot;
+         :publishing-directory &quot;~/projects/public/css/&quot;
+         :publishing-function org-publish-attachment)
+
+        (&quot;docs&quot; :components (&quot;org-content&quot; &quot;org-images&quot; &quot;org-css&quot;))))
+</code></pre>
+
+<h2>同步</h2>
+
+<p>发布时使用 Rsync 同步：</p>
+
+<pre class="code-block code-src"><code>(setq org-publish-project-alist
+      '((&quot;remote&quot;
+         :base-directory &quot;~/docs/&quot;
+         :publishing-function org-html-publish-to-html
+         :publishing-function (lambda (plist filename)
+                                (let ((html (org-html-publish-to-html plist filename)))
+                                  (call-process &quot;rsync&quot; nil nil nil &quot;-avz&quot;
+                                                html &quot;user@server:/var/www/&quot;)))))))
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

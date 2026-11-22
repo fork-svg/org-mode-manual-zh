@@ -1,0 +1,154 @@
+* 杂项
+
+本章介绍 Org 模式的其他功能。
+
+** 搜索
+
+*** 全局搜索
+
+| 命令 | 功能 |
+|------+------|
+| =C-c a s= | 全文搜索 |
+| =C-c a /= | 多条件搜索 |
+
+*** 文件内搜索
+
+- =C-c C-q=：快速搜索（标签和属性）
+
+** 链接
+
+*** 链接类型
+
+Org 支持多种链接类型：
+
+- =http://= 和 =https://=：网页链接
+- =file://=：文件链接
+- =mailto:=：邮件链接
+- =news:= 和 =nntp:=：新闻组链接
+- =irc:=：IRC 链接
+- =bbdb:=：联系人链接
+- =rmail:= 和 =gnus:=：邮件链接
+
+*** ID 链接
+
+使用 ID 链接到特定条目：
+
+#+BEGIN_EXAMPLE
+* 目标标题
+:PROPERTIES:
+:ID: unique-id-12345
+:END:
+
+[[id:unique-id-12345][链接到目标]]
+#+END_EXAMPLE
+
+** 导入和导出
+
+*** 从其他格式导入
+
+- 从 Markdown 导入（使用外部工具）
+- 从 HTML 导入（使用外部工具）
+
+*** 导出为 Org
+
+Org 文件本身就是纯文本，可以直接复制和分享。
+
+** 书签和寄存器
+
+使用 Emacs 的书签功能快速跳转到文件：
+
+#+BEGIN_SRC emacs-lisp
+;; 设置书签
+C-x r m (设置书签)
+C-x r b (跳转到书签)
+#+END_SRC
+
+** 与其他工具集成
+
+*** Emacs 集成
+
+- =dired=：在 dired 中打开 Org 链接
+- =calendar=：与日历集成
+- =diary=：与日记集成
+- =info=：Info 文档链接
+
+*** 外部工具
+
+- =pandoc=：文档转换
+- =ox-pandoc=：通过 Pandoc 导出
+- =org2blog=：发布到 WordPress
+
+** 移动和同步
+
+*** 文件同步
+
+使用以下工具同步 Org 文件：
+
+- Git：版本控制和同步
+- Dropbox / Google Drive：云同步
+- Syncthing：点对点同步
+
+*** 移动端
+
+- =Orgzly=（Android）
+- =beorg=（iOS）
+- =mobileorg=（iOS）
+
+** 快捷键参考
+
+*** 全局快捷键
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c l= | 存储链接 |
+| =C-c c= | 打开捕获模板 |
+| =C-c a= | 打开日程调度器 |
+| =C-c b= | 切换 Org 缓冲区 |
+
+*** 文件内快捷键
+
+| 快捷键 | 功能 |
+|--------+------|
+| =TAB= | 切换可见性 |
+| =S-TAB= | 全局切换可见性 |
+| =C-c C-n= | 下一个标题 |
+| =C-c C-p= | 上一个标题 |
+| =M-RET= | 新建标题/项目 |
+| =C-c C-c= | 设置标签/执行代码 |
+| =C-c C-t= | 切换 TODO 状态 |
+| =C-c C-s= | 设置计划日期 |
+| =C-c C-d= | 设置截止日期 |
+
+** 自定义
+
+*** 配置文件
+
+#+BEGIN_SRC emacs-lisp
+;; 基本设置
+(setq org-startup-indented t)    ; 缩进显示
+(setq org-startup-folded t)      ; 初始折叠
+(setq org-hide-emphasis-markers t) ; 隐藏标记符号
+(setq org-log-done 'time)        ; 记录完成时间
+(setq org-agenda-files '("~/org/")) ; 日程文件
+
+;; 快捷键
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c c") #'org-capture)
+(global-set-key (kbd "C-c a") #'org-agenda)
+#+END_SRC
+
+*** 主题
+
+可以通过自定义 Emacs 主题来改变 Org 的外观。
+
+** 获取帮助
+
+- =C-h m=：显示当前模式的帮助
+- =C-h k=：显示快捷键帮助
+- =C-h f=：显示函数帮助
+- =C-h v=：显示变量帮助
+
+** 报告问题
+
+- 邮件列表：[[mailto:emacs-orgmode@gnu.org][emacs-orgmode@gnu.org]]
+- 问题追踪：https://orgmode.org/worg/org-contribute.html

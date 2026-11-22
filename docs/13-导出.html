@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导出 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>导出</h1>
+
+<p>Org 可以将文档导出为多种格式。</p>
+
+<h2>导出命令</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-e</code></td><td>导出命令前缀</td></tr>
+<tr><td><code>C-c C-e h h</code></td><td>导出为 HTML</td></tr>
+<tr><td><code>C-c C-e H H</code></td><td>导出为 HTML 并打开</td></tr>
+<tr><td><code>C-c C-e l l</code></td><td>导出为 LaTeX</td></tr>
+<tr><td><code>C-c C-e l p</code></td><td>导出为 PDF 并打开</td></tr>
+<tr><td><code>C-c C-e m m</code></td><td>导出为 Markdown</td></tr>
+<tr><td><code>C-c C-e o o</code></td><td>导出为 ODT</td></tr>
+<tr><td><code>C-c C-e t t</code></td><td>导出为 Texinfo</td></tr>
+<tr><td><code>C-c C-e i i</code></td><td>导出为 iCalendar</td></tr>
+<tr><td><code>C-c C-e a a</code></td><td>导出为 ASCII</td></tr>
+</tbody></table>
+
+<h2>导出选项</h2>
+
+<p>在文件开头设置导出选项：</p>
+
+<pre class="code-block code-example"><code>#+TITLE: 文档标题
+#+AUTHOR: 作者姓名
+#+DATE: 2024-01-15
+#+EMAIL: user@example.com
+#+DESCRIPTION: 文档描述
+#+KEYWORDS: 关键词1, 关键词2
+#+LANGUAGE: zh
+#+OPTIONS: toc:t num:t ::t
+</code></pre>
+
+<h2>导出设置</h2>
+
+<h3>目录</h3>
+
+<pre class="code-block code-example"><code>#+OPTIONS: toc:nil        # 不生成目录
+#+OPTIONS: toc:t          # 生成目录（默认）
+#+OPTIONS: toc:3          # 目录深度为 3 级
+</code></pre>
+
+<h3>编号</h3>
+
+<pre class="code-block code-example"><code>#+OPTIONS: num:t          # 章节编号
+#+OPTIONS: num:nil        # 不编号
+#+OPTIONS: num:3          # 只编号到 3 级
+</code></pre>
+
+<h3>其他选项</h3>
+
+<pre class="code-block code-example"><code>#+OPTIONS: author:t       # 包含作者
+#+OPTIONS: creator:t      # 包含创建者信息
+#+OPTIONS: email:t        # 包含邮箱
+#+OPTIONS: timestamp:t    # 包含时间戳
+#+OPTIONS: ^:t            # 支持上下标
+#+OPTIONS: \n:t           # 保留换行
+</code></pre>
+
+<h2>HTML 导出</h2>
+
+<h3>自定义 CSS</h3>
+
+<pre class="code-block code-example"><code>#+HTML_HEAD: &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;style.css&quot; /&gt;
+</code></pre>
+
+<h3>自定义 HTML</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_EXPORT html
+&lt;div class=&quot;custom&quot;&gt;
+  &lt;p&gt;自定义 HTML 内容&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>LaTeX 导出</h2>
+
+<h3>文档类</h3>
+
+<pre class="code-block code-example"><code>#+LATEX_CLASS: article
+#+LATEX_CLASS: report
+#+LATEX_CLASS: book
+</code></pre>
+
+<h3>自定义 LaTeX</h3>
+
+<pre class="code-block code-example"><code>#+LATEX_HEADER: \usepackage{xeCJK}
+#+LATEX_HEADER: \setCJKmainfont{Noto Serif CJK SC}
+</code></pre>
+
+<pre class="code-block code-example"><code>#+BEGIN_EXPORT latex
+\begin{center}
+自定义 LaTeX 内容
+\end{center}
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>Markdown 导出</h2>
+
+<p>Org 可以导出为 Markdown 格式，便于在其他平台使用。</p>
+
+<h2>Beamer 导出</h2>
+
+<p>导出为 Beamer 幻灯片：</p>
+
+<pre class="code-block code-example"><code>#+LATEX_CLASS: beamer
+#+BEAMER_THEME: Madrid
+#+OPTIONS: H:2
+
+* 第一张幻灯片
+** 要点一
+** 要点二
+
+* 第二张幻灯片
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

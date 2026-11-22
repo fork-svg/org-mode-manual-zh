@@ -1,0 +1,69 @@
+* 历史与致谢
+
+** 开发历史
+
+Org 模式由 Carsten Dominik 于 2003 年创建，最初是一个简单的 Emacs 大纲模式扩展。
+
+*** 早期发展（2003-2005）
+
+- 2003 年：Carsten Dominik 开始开发 Org 模式
+- 最初的目标是创建一个简单的 TODO 列表管理器
+- 很快发展为一个完整的笔记和项目管理工具
+
+*** 成熟期（2006-2010）
+
+- 2006 年：Org 模式成为 GNU Emacs 的一部分
+- 添加了表格、导出、HTML 发布等功能
+- Babel（代码执行）功能开始开发
+
+*** 现代化（2011-至今）
+
+- 2011 年：Org 9.0 发布，引入了新的导出引擎
+- 2015 年：org-element 解析器成为默认
+- 持续改进和扩展
+
+** 主要贡献者
+
+Org 模式的成功离不开众多贡献者的努力。
+
+*** 核心维护者
+
+- Carsten Dominik（原创者）
+- Bastien Guerry（长期维护者）
+- Nicolas Goaziou（核心开发者，org-element 作者）
+- Kyle Meyer（当前维护者）
+- Ihor Radchenko（当前维护者）
+
+*** 重要贡献
+
+许多人为 Org 模式做出了重要贡献：
+
+- 表格和电子表格功能
+- Babel（代码执行）
+- 导出引擎
+- HTML/LaTeX/Markdown 导出
+- 捕获和附件系统
+- 议程视图
+-  countless 错误修复和改进
+
+** 致谢
+
+感谢所有为 Org 模式做出贡献的开发者和用户：
+
+- 报告问题和建议的用户
+- 编写文档和教程的贡献者
+- 开发扩展包的开发者
+- 翻译手册的志愿者
+- 推广 Org 模式的社区成员
+
+** 许可证
+
+Org 模式是自由软件，遵循 GNU General Public License (GPL) 3.0 或更高版本。
+
+本手册遵循 GNU Free Documentation License (GFDL) 1.3 或更高版本。
+
+** 获取最新版本
+
+- 官方网站：https://orgmode.org/
+- Git 仓库：https://git.sr.ht/~bzg/org-mode
+- 邮件列表：emacs-orgmode@gnu.org

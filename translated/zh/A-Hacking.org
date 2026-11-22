@@ -1,0 +1,813 @@
+* 定制与扩展
+:PROPERTIES:
+:DESCRIPTION: 如何定制和扩展 Org 模式。
+:APPENDIX: t
+:END:
+#+cindex: 定制与扩展
+
+本附录介绍用户扩展 Org 模式功能的各种方法。
+
+** Hooks
+:PROPERTIES:
+:DESCRIPTION: 如何深入 Org 的内部机制。
+:END:
+#+cindex: hooks
+
+Org 拥有大量的 hook 变量用于添加功能。Worg 项目维护了一份包含文档说明的完整 hook 列表，详见 https://orgmode.org/worg/doc.html#hooks。
+
+** 附加组件包
+:PROPERTIES:
+:DESCRIPTION: 可用的扩展组件。
+:END:
+#+cindex: 附加组件包
+
+多位作者为 Org 编写了大量附加组件包。其中一些曾经是 =org-mode= 仓库的一部分，但现在已迁移到独立的 =org-contrib= 仓库中，地址为 [[https://git.sr.ht/~bzg/org-contrib][此处]]。更多详情请访问 Worg 页面：https://orgmode.org/worg/org-contrib/。
+
+** 添加超链接类型
+:PROPERTIES:
+:DESCRIPTION: 新的自定义链接类型。
+:END:
+#+cindex: 超链接，添加新类型
+
+Org 内置了许多超链接类型（参见 [[*超链接]]），并提供了添加新链接类型的接口。以下示例展示了向 Org 添加 Unix man 手册页链接的过程，链接格式如下：
+
+: [[man:printf][printf 手册]]
+
+#+texinfo: @noindent
+以下 =ol-man.el= 文件实现了该功能：
+
+#+begin_src emacs-lisp
+;;; ol-man.el - Org 模式中 man 手册页链接支持
+(require 'ol)
+
+(org-link-set-parameters "man"
+                         :follow #'org-man-open
+                         :export #'org-man-export
+                         :store #'org-man-store-link)
+
+(defcustom org-man-command 'man
+  "用于显示 man 手册页的 Emacs 命令。"
+  :group 'org-link
+  :type '(choice (const man) (const woman)))
+
+(defun org-man-open (path _)
+  "访问 PATH 上的手册页。
+PATH 应该是可以传递给 man 命令的主题。"
+  (funcall org-man-command path))
+
+(defun org-man-store-link (&optional _interactive?)
+  "存储到 man 手册页的链接。"
+  (when (memq major-mode '(Man-mode woman-mode))
+    ;; 这是一个 man 手册页，创建链接
+    (let* ((page (org-man-get-page-name))
+           (link (concat "man:" page))
+           (description (format "Man page for %s" page)))
+      (org-link-store-props
+       :type "man"
+       :link link
+       :description description))))
+
+(defun org-man-get-page-name ()
+  "从缓冲区名称中提取手册页名称。"
+  ;; 适用于 `Man-mode' 和 `woman-mode'
+  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
+      (match-string 1 (buffer-name))
+    (error "无法创建到此手册页的链接")))
+
+(defun org-man-export (link description format _)
+  "从 Org 文件导出 man 手册页链接。"
+  (let ((path (format "http://man.he.net/?topic=%s&section=all" link))
+        (desc (or description link)))
+    (pcase format
+      (`html (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
+      (`latex (format "\\href{%s}{%s}" path desc))
+      (`texinfo (format "@uref{%s,%s}" path desc))
+      (`ascii (format "%s (%s)" desc path))
+      (t path))))
+
+(provide ol-man)
+;;; ol-man.el 结束
+#+end_src
+
+#+texinfo: @noindent
+要在 Org 中激活 man 手册页链接，请在 Emacs 初始化文件中添加：
+
+#+begin_src emacs-lisp
+(require 'ol-man)
+#+end_src
+
+#+texinfo: @noindent
+=ol-man.el= 代码解析：
+
+1. 首先，=(require 'ol)= 确保 =ol.el= 已加载。
+
+2.
+
+   #+findex: org-link-set-parameters
+   #+vindex: org-link-parameters
+   然后 ~org-link-set-parameters~ 定义了一个以 =man= 为前缀的新链接类型，并关联了跟踪、导出和存储此类链接的函数。有关所有可能关联的完整列表，请参见变量 ~org-link-parameters~。
+
+3. 文件的其余部分实现了必要的变量和函数。
+
+   例如，~org-man-store-link~ 负责在显示 man 手册页的缓冲区中调用 ~org-store-link~（参见 [[*处理链接]]）时存储链接。该函数接收一个 ~interactive?~ 参数，虽然此函数中未使用该参数，但其他存储函数可能会在用户交互式存储链接时表现不同。它首先检查主模式是否合适。如果检查失败，函数返回 ~nil~，表示它不负责为当前缓冲区创建链接。否则，函数通过将 =man:= 前缀与手册主题组合来创建链接字符串，并提供默认描述。函数 ~org-insert-link~ 稍后可以将其插入回 Org 缓冲区。
+
+** 添加超链接预览
+:PROPERTIES:
+:DESCRIPTION: 新超链接类型的预览行为。
+:END:
+#+cindex: 超链接，添加预览行为
+
+默认情况下，Org 支持预览指向图片文件的 =file= 和 =attachment= 类型的外部链接。（参见 [[*图片]]。）
+
+可以通过以下方式为 Org 添加其他链接类型的内联预览支持：
+
+1. 使用 ~org-link-set-parameters~ 为链接类型添加 =:preview= 链接参数。以下示例为 =docview= 链接类型添加预览功能。
+
+   #+begin_src emacs-lisp
+(org-link-set-parameters
+ "docview" :preview #'org-link-docview-preview)
+   #+end_src
+
+2. =:preview= 参数的值必须是一个接受三个参数的函数：
+   - 放置在链接起止位置的覆盖（overlay）
+   - 链接路径（字符串）
+   - 链接的语法节点
+
+   该函数必须返回非 nil 值表示预览成功。返回 =nil= 表示预览失败，放置在链接上的覆盖将被移除。
+
+   在示例中，我们使用 =convert= 程序（=imagemagick= 工具套件的一部分）创建内联显示的缩略图。
+
+   #+begin_src emacs-lisp
+(defun org-link-docview-preview (ov path _elem)
+  "在覆盖 OV 中预览 PATH 处的文件。
+
+_ELEM 是链接元素的语法节点。"
+  (when (executable-find "convert")
+    (let* ((path (expand-file-name (substitute-in-file-name path)))
+           (output-file (expand-file-name (concat "org-docview-preview-"
+                                                  (substring (sha1 path) 0 10)
+                                                  ".png")
+                                          temporary-file-directory)))
+      ;; 创建或查找路径的预览
+      (when (or (file-readable-p output-file)
+                (= 0 (call-process
+                      "convert"
+                      nil (get-buffer-create "*Org Docview Preview Output*") nil
+                      "-thumbnail" "x320" "-colorspace" "rgb"
+                      "-background" "white" "-alpha" "remove" "-strip"
+                      (concat path "[0]") output-file)))
+        ;; 如果预览图像可用，通过覆盖显示它
+        (overlay-put ov 'display (create-image output-file))))))
+   #+end_src
+
+3. 现在，调用 ~org-link-preview~ 时会生成 docview 链接的预览（适用于 PDF、djvu 等受支持的文档类型），以及图片文件的预览。
+
+** 添加导出后端
+:PROPERTIES:
+:DESCRIPTION: 如何编写新的导出后端。
+:END:
+#+cindex: 导出，编写后端
+
+Org 的导出引擎使编写新后端变得容易。引擎所构建的框架使从现有后端派生新后端变得简单。
+
+#+findex: org-export-define-backend
+#+findex: org-export-define-derived-backend
+导出引擎的两个主要入口点是：~org-export-define-backend~ 和 ~org-export-define-derived-backend~。要理解这些函数，请参阅 =ox-latex.el=（从头定义新后端的示例）和 =ox-beamer.el=（从现有引擎派生的示例）。
+
+从头创建新后端时，首先将其名称设置为符号，放在一个由元素和导出函数组成的关联列表中。要使后端对导出调度器可见，请设置 ~:menu-entry~ 关键字。对于此后端特定的导出选项，请设置 ~:options-alist~。
+
+从现有后端创建新后端时，将 ~:translate-alist~ 设置为导出函数的关联列表。此关联列表替换父后端的函数。
+
+完整文档请参见 [[https://orgmode.org/worg/dev/org-export-reference.html][Worg 上的 Org 导出参考]]。
+
+** 任意语法的表格
+:PROPERTIES:
+:DESCRIPTION: 在 LaTeX 和其他程序中使用 Orgtbl。
+:END:
+#+cindex: 表格，在其他模式中
+#+cindex: 列表，在其他模式中
+#+cindex: Orgtbl 模式
+
+由于 Org 在表格处理方面表现出色，一个经常被请求的功能是在其他模式（如 LaTeX）中使用 Org 的表格函数。如果以通用方式实现，这将导致复杂的定制噩梦。而且，这将使 Org 偏离 Orgtbl 所证明的简洁根基。然而，有一种替代方法可以达到同样的目的。
+
+这种方法涉及实现一个自定义的 /转换/ 函数，该函数作用于原生 Org /源表格/，生成另一种格式的表格。这种策略保持 Orgtbl 出色的简洁性，并将复杂性（如果有）隔离在转换函数中。要添加更多外来表格格式，只需添加更多转换函数。为新表格格式开发自定义转换函数的负担也由最了解这些格式的人承担。
+
+*** 无线电表格
+:PROPERTIES:
+:DESCRIPTION: 发送和接收无线电表格。
+:END:
+#+cindex: 无线电表格
+
+无线电表格是转换后表格的目标位置，它们与源表格不在同一位置。Org 查找目标位置并插入转换后的表格。
+
+查找目标位置的关键是魔法词 =BEGIN/END RECEIVE ORGTBL=。它们必须以当前模式的注释形式出现。如果模式是 C，则：
+
+#+begin_example
+/* BEGIN RECEIVE ORGTBL table_name */
+/* END RECEIVE ORGTBL table_name */
+#+end_example
+
+在源位置，Org 需要一行特殊指令来引导 Orgtbl 进行转换并查找插入转换后表格的目标。例如：
+
+#+cindex: @samp{ORGTBL}，关键字
+: #+ORGTBL: SEND table_name translation_function arguments ...
+
+#+texinfo: @noindent
+=table_name= 是表格的引用名称，也在接收行中使用，=translation_function= 是执行转换的 Lisp 函数。此行末尾还可以包含交替的键值参数。转换函数以属性列表的形式接收这些值。一些标准参数在调用转换函数之前已被识别并处理：
+
+- =:skip N= ::
+
+  跳过表格的前 N 行。水平线也算在内；如果要跳过水平线，请将其包含在内。
+
+- =:skipcols (n1 n2 ...)= ::
+
+  要跳过的列的列表。首先 Org 自动丢弃带有计算标记的列，然后将表格发送给转换函数，转换函数再按 =skipcols= 的指定跳过列。
+
+为保持源表格在缓冲区中完整而不被干扰（在编译或以其他方式处理源文件时），请使用以下策略之一：
+
+- 将表格放在块注释中。例如，在 C 模式中，可以在 =/*= 和 =*/= 行之间包裹表格。
+
+- 将表格放在"结束"语句之后。例如 TeX 中的 ~\bye~ 和 LaTeX 中的 ~\end{document}~。
+
+- 在编辑时注释和取消注释表格的每一行。{{{kbd(M-x orgtbl-toggle-comment)}}} 命令使切换变得容易。
+
+*** 无线电表格的 LaTeX 示例
+:PROPERTIES:
+:DESCRIPTION: 逐步讲解，接近教程。
+:ALT_TITLE: LaTeX 示例
+:END:
+#+cindex: @LaTeX{}，与 Orgtbl 模式
+
+要在 LaTeX 中包裹源表格，请使用 =comment.sty= 提供的 =comment= 环境[fn:: https://www.ctan.org/pkg/comment]。要激活它，请在文档头部添加 ~\usepackage{comment}~。Orgtbl 模式通过 {{{kbd(M-x orgtbl-insert-radio-table)}}} 命令插入无线电表格骨架[fn:56]，该命令会提示输入表格名称。例如，如果名称为 =salesfigures=，模板会插入：
+
+#+begin_example
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\begin{comment}
+,#+ORGTBL: SEND salesfigures orgtbl-to-latex
+| | |
+\end{comment}
+#+end_example
+
+#+vindex: LaTeX-verbatim-environments
+#+texinfo: @noindent
+=#+ORGTBL: SEND= 行告诉 Orgtbl 模式使用 ~orgtbl-to-latex~ 函数将表格转换为 LaTeX 格式，然后将表格插入名为 =salesfigures= 的目标（接收）位置。现在表格已准备好录入数据，甚至可以使用电子表格功能[fn:57]：
+
+#+begin_example
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\begin{comment}
+,#+ORGTBL: SEND salesfigures orgtbl-to-latex
+| Month | Days | Nr sold | per day |
+|-------+------+---------+---------|
+| Jan   |   23 |      55 |     2.4 |
+| Feb   |   21 |      16 |     0.8 |
+| March |   22 |     278 |    12.6 |
+,#+TBLFM: $4=$3/$2;%.1f
+% $ (可选的额外美元符号以保持 Font Lock 正常，见脚注)
+\end{comment}
+#+end_example
+
+编辑后，{{{kbd(C-c C-c)}}} 在目标位置（两个标记行之间）插入转换后的表格。
+
+对于手工制作的自定义表格，请注意转换器需要跳过源表格的前两行。此外，命令必须 /拼接/ 出没有头部和尾部的目标表格。
+
+#+begin_example
+\begin{tabular}{lrrr}
+Month & \multicolumn{1}{c}{Days} & Nr.\ sold & per day\\
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\end{tabular}
+%
+\begin{comment}
+,#+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
+| Month | Days | Nr sold | per day |
+|-------+------+---------+---------|
+| Jan   |   23 |      55 |     2.4 |
+| Feb   |   21 |      16 |     0.8 |
+| March |   22 |     278 |    12.6 |
+,#+TBLFM: $4=$3/$2;%.1f
+\end{comment}
+#+end_example
+
+LaTeX 转换函数 ~orgtbl-to-latex~ 已经是 Orgtbl 模式的一部分，它使用 =tabular= 环境排版表格，并用 ~\hline~ 标记水平线。有关控制输出的其他参数，请参见 [[*转换函数]]：
+
+- =:splice BOOLEAN= ::
+
+  当 {{{var(BOOLEAN}}} 为非 ~nil~ 时，仅返回表格主体行；即不包裹在 =tabular= 环境中。默认为 ~nil~。
+
+- =:fmt FMT= ::
+
+  包裹每个字段的格式字符串。它应包含 =%s= 用于原始字段值。例如，要将每个字段值用美元符号包裹，可以使用 =:fmt "$%s$"=。格式也可以是包含列号和格式的关联列表，例如 =:fmt (2 "$%s$" 4 "%s\\%%")=。代替字符串，也可以使用接受一个参数的函数；该函数必须返回格式化后的字符串。
+
+- =:efmt EFMT= ::
+
+  将数字格式化为指数形式。规格说明应包含两个 =%s=，分别用于插入尾数和指数，例如 ="%s\\times10^{%s}"=。这也可以是包含列号和格式的关联列表，例如 =:efmt (2 "$%s\\times10^{%s}$" 4 "$%s\\cdot10^{%s}$")=。在 {{{var(EFMT)}}} 应用于值之后，{{{var(FMT)}}}（见上文）也会被应用。可以提供接受两个参数的函数来代替字符串。默认情况下，不进行特殊格式化。
+
+*** 转换函数
+:PROPERTIES:
+:DESCRIPTION: 复制并修改。
+:END:
+#+cindex: HTML，与 Orgtbl 模式
+#+cindex: 转换函数
+
+#+findex: orgtbl-to-csv
+#+findex: orgtbl-to-tsv
+#+findex: orgtbl-to-latex
+#+findex: orgtbl-to-html
+#+findex: orgtbl-to-texinfo
+#+findex: orgtbl-to-unicode
+#+findex: orgtbl-to-orgtbl
+#+findex: orgtbl-to-generic
+Orgtbl 模式具有内置转换函数：~orgtbl-to-csv~（逗号分隔值）、~orgtbl-to-tsv~（TAB 分隔值）、~orgtbl-to-latex~、~orgtbl-to-html~、~orgtbl-to-texinfo~、~orgtbl-to-unicode~ 和 ~orgtbl-to-orgtbl~。它们使用通用转换器 ~orgtbl-to-generic~，该函数将翻译委托给各种导出后端。
+
+通过 =ORGTBL SEND= 行传递给函数的属性优先于函数内部定义的属性。例如，这将用 ~\\[2mm]~ 覆盖默认的 LaTeX 行尾 ~\\~：
+
+: #+ORGTBL: SEND test orgtbl-to-latex :lend " \\\\[2mm]"
+
+对于新语言的转换器，定义一个转换函数。它可以是通用函数，如下例所示。它用 =!BTBL!= 和 =!ETBL!= 标记表格的开始和结束；用 =!BL!= 和 =!EL!= 标记行的开始和结束；使用 TAB 作为字段分隔符：
+
+#+begin_src emacs-lisp
+(defun orgtbl-to-language (table params)
+  "将 orgtbl-mode 的 TABLE 转换为指定语言格式。"
+  (orgtbl-to-generic
+   table
+   (org-combine-plists
+    '(:tstart "!BTBL!" :tend "!ETBL!" :lstart "!BL!" :lend "!EL!" :sep "\t")
+    params)))
+#+end_src
+
+#+texinfo: @noindent
+~orgtbl-to-generic~ 函数的文档显示了完整的参数列表，每个参数都可以传递给 ~orgtbl-to-latex~、~orgtbl-to-texinfo~ 以及使用该通用函数的任何其他函数。
+
+对于复杂的转换，通用转换函数可以被自定义转换函数替代。这样的自定义函数必须接受两个参数并返回一个包含格式化表格的字符串。第一个参数是表格，其行是字段列表或符号 ~hline~。第二个参数是属性列表，包含 =#+ORGTBL: SEND= 行中指定的参数。请通过将您的转换函数发布到 Org 用户邮件列表（mailto:emacs-orgmode@gnu.org）来分享它们。
+
+** 动态块
+:PROPERTIES:
+:DESCRIPTION: 自动填充的块。
+:END:
+#+cindex: 动态块
+
+Org 支持 Org 文档中的 /动态块/。它们像其他代码块一样使用开始和结束标记插入，但内容由用户函数自动更新。
+
+#+kindex: C-c C-x x
+#+findex: org-dynamic-block-insert-dblock
+您可以使用 ~org-dynamic-block-insert-dblock~ 插入动态块，默认绑定到 {{{kbd(C-c C-x x)}}}。例如，{{{kbd(C-c C-x x c l o c k t a b l e RET)}}} 插入一个更新工作时间的表格（参见 [[*记录工作时间]]）。
+
+动态块可以有名称和函数参数。语法类似于源代码块规格：
+
+#+begin_example
+,#+BEGIN: myblock :parameter1 value1 :parameter2 value2 ...
+  ...
+,#+END:
+#+end_example
+
+以下命令更新动态块：
+
+- {{{kbd(C-c C-x C-u)}}} (~org-dblock-update~) ::
+
+  #+kindex: C-c C-x C-u
+  #+findex: org-dblock-update
+  更新光标处的动态块。
+
+- {{{kbd(C-u C-c C-x C-u)}}} ::
+
+  #+kindex: C-u C-c C-x C-u
+  更新当前文件中的所有动态块。
+
+在更新动态块之前，Org 移除 =BEGIN= 和 =END= 标记之间的内容。然后 Org 读取 =BEGIN= 行上的参数，作为属性列表传递给写入函数。动态块的先前内容从缓冲区中被擦除，并追加到属性列表的 ~:content~ 下。
+
+用动态块标签 =myblock= 命名写入函数的语法为：~org-dblock-write:myblock~。
+
+以下是动态块和块写入函数的示例，该函数更新上次运行时的时间：
+
+#+begin_example
+,#+BEGIN: block-update-time :format "on %m/%d/%Y at %H:%M"
+  ...
+,#+END:
+#+end_example
+
+#+texinfo: @noindent
+动态块的写入函数：
+
+#+begin_src emacs-lisp
+(defun org-dblock-write:block-update-time (params)
+  (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
+    (insert "上次块更新时间："
+            (format-time-string fmt))))
+#+end_src
+
+要在 Org 文件中保持动态块最新，请使用 ~org-update-all-dblocks~ 函数，可以放在 ~before-save-hook~ 等 hook 中。如果文件不在 Org 模式中，~org-update-all-dblocks~ 函数不会运行。
+
+#+findex: org-narrow-to-block
+动态块像其他块一样，可以使用 ~org-narrow-to-block~ 进行 narrowing。
+
+** 特殊日程视图
+:PROPERTIES:
+:DESCRIPTION: 自定义视图。
+:END:
+#+cindex: 日程视图，用户自定义
+
+#+vindex: org-agenda-skip-function
+#+vindex: org-agenda-skip-function-global
+Org 提供了一个特殊的 hook，用于进一步限制日程视图中的项目：~agenda~、~agenda*~[fn:: ~agenda*~ 视图与 ~agenda~ 相同，只是它仅考虑 /约会/，即时间戳中包含时间规格 =[h]h:mm= 的计划和截止日期项目。]、~todo~、~alltodo~、~tags~、~tags-todo~、~tags-tree~。指定一个自定义函数来测试每个匹配项目是否包含在视图中。该函数还可以跳过尽可能多的内容。
+
+对于适用于日程视图的全局条件，请使用 ~org-agenda-skip-function-global~ 变量。Org 将 ~org-agenda-skip-function~ 的全局条件用于自定义搜索。
+
+此示例为显示带有 =waiting= 状态的 TODO 项目的自定义视图定义了一个函数。手动执行这是一个多步骤搜索过程，但使用自定义视图可以自动完成，如下所示：
+
+自定义函数搜索子树中的 =waiting= 标签，匹配时返回 ~nil~。否则，返回搜索继续的位置。
+
+#+begin_src emacs-lisp
+(defun my-skip-unless-waiting ()
+  "跳过不在等待状态的树"
+  (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+    (if (re-search-forward ":waiting:" subtree-end t)
+        nil          ; 找到标签，不跳过
+      subtree-end))) ; 未找到标签，在子树结束后继续
+#+end_src
+
+要在自定义日程命令中使用此自定义函数：
+
+#+begin_src emacs-lisp
+(org-add-agenda-custom-command
+ '("b" todo "PROJECT"
+   ((org-agenda-skip-function 'my-skip-unless-waiting)
+    (org-agenda-overriding-header "等待中的项目："))))
+#+end_src
+
+#+vindex: org-agenda-overriding-header
+注意，这里还绑定了 ~org-agenda-overriding-header~ 为一个更适合日程视图的有意义的字符串。
+
+#+vindex: org-odd-levels-only
+#+vindex: org-agenda-skip-function
+#+findex: org-agenda-skip-entry-if
+#+findex: org-agenda-skip-subtree-if
+搜索时可以对自定义搜索的层级进行限制。这是在 Org 中创建自定义搜索的通用方法。要包含所有层级，使用 =LEVEL>0=[fn:: 注意，对于 ~org-odd-levels-only~，层级编号对应于层级结构中的顺序，而不是星号的数量。]。然后要有选择地提取匹配的条目，使用 ~org-agenda-skip-function~，它还接受 Lisp 表达式，如 ~org-agenda-skip-entry-if~ 和 ~org-agenda-skip-subtree-if~。例如：
+
+- =(org-agenda-skip-entry-if 'scheduled)= ::
+
+  如果当前条目已被安排，则跳过。
+
+- =(org-agenda-skip-entry-if 'notscheduled)= ::
+
+  如果当前条目未被安排，则跳过。
+
+- =(org-agenda-skip-entry-if 'deadline)= ::
+
+  如果当前条目有截止日期，则跳过。
+
+- =(org-agenda-skip-entry-if 'scheduled 'deadline)= ::
+
+  如果当前条目有截止日期或已被安排，则跳过。
+
+- =(org-agenda-skip-entry-if 'todo '("TODO" "WAITING"))= ::
+
+  如果 TODO 关键字是 TODO 或 WAITING，则跳过当前条目。
+
+- =(org-agenda-skip-entry-if 'todo 'done)= ::
+
+  如果 TODO 关键字标记为完成状态，则跳过当前条目。
+
+- =(org-agenda-skip-entry-if 'timestamp)= ::
+
+  如果当前条目有任何时间戳（可能包括截止日期或计划），则跳过。
+
+- =(org-agenda-skip-entry-if 'regexp "正则表达式")= ::
+
+  如果正则表达式在条目中匹配，则跳过当前条目。
+
+- =(org-agenda-skip-entry-if 'notregexp "正则表达式")= ::
+
+  除非正则表达式匹配，否则跳过当前条目。
+
+- =(org-agenda-skip-subtree-if 'regexp "正则表达式")= ::
+
+  与上相同，但检查和跳过整个子树。
+
+以下是无需特殊函数搜索 =waiting= 的示例：
+
+#+begin_src emacs-lisp
+(org-add-agenda-custom-command
+ '("b" todo "PROJECT"
+   ((org-agenda-skip-function '(org-agenda-skip-subtree-if
+                                'regexp ":waiting:"))
+    (org-agenda-overriding-header "等待中的项目："))))
+#+end_src
+
+** 加速日程视图
+:PROPERTIES:
+:DESCRIPTION: 加速日程视图的技巧。
+:END:
+#+cindex: 日程视图，优化
+
+当 Org 文件的大小或数量增长时，一些日程命令会变慢。以下是加速技巧：
+
+- 减少 Org 日程文件的数量，以避免硬盘访问导致的减速。
+
+- 减少 DONE 和已归档标题的数量，以便跳过这些项目的日程操作能更快完成。
+
+- 不要灰显被阻止的任务：
+  #+vindex: org-agenda-dim-blocked-tasks
+
+  #+begin_src emacs-lisp
+  (setq org-agenda-dim-blocked-tasks nil)
+  #+end_src
+
+- 停止在启动时准备日程缓冲区：
+  #+vindex: org-startup-folded
+  #+vindex: org-agenda-inhibit-startup
+
+  #+begin_src emacs-lisp
+  (setq org-agenda-inhibit-startup t)
+  #+end_src
+
+- 禁用日程的标签继承：
+  #+vindex: org-agenda-show-inherited-tags
+  #+vindex: org-agenda-use-tag-inheritance
+
+  #+begin_src emacs-lisp
+  (setq org-agenda-use-tag-inheritance nil)
+  #+end_src
+
+  #+vindex: org-agenda-ignore-properties
+- 禁用某些属性的解析：
+
+  #+begin_src emacs-lisp
+  (setq org-agenda-ignore-properties '(stats))
+  #+end_src
+
+  这将禁用统计 cookies 的解析和更新。
+
+这些选项可以应用于选定的日程视图。有关日程视图生成的更多详细信息，请参阅相关变量的文档字符串，以及这个 [[https://orgmode.org/worg/agenda-optimization.html][专门的 Worg 页面]] 了解日程优化。
+
+** 提取日程信息
+:PROPERTIES:
+:DESCRIPTION: 日程信息的后处理。
+:END:
+#+cindex: 日程，管道
+#+cindex: 脚本，用于日程处理
+
+Org 提供通过 Emacs 批处理模式访问日程的命令。通过这个命令行接口，日程可以自动化进行进一步处理或打印。
+
+#+vindex: org-agenda-custom-commands
+#+findex: org-batch-agenda
+~org-batch-agenda~ 创建 ASCII 格式的日程视图并输出到标准输出。该命令接受一个字符串参数。当字符串由单个字符组成时，Org 将其用作 ~org-agenda-custom-commands~ 的键。这些键与日程调度器提供的键相同（参见 [[*日程调度器]]）。
+
+此示例命令行直接将 TODO 列表输出到打印机：
+
+: emacs -batch -l ~/.emacs -eval '(org-batch-agenda "t")' | lpr
+
+当字符串参数长度为两个或更多字符时，Org 将其与标签/TODO 字符串匹配。例如，此命令行打印带有 =shop= 标签的项目，但排除带有 =NewYork= 标签的项目：
+
+#+begin_example
+emacs -batch -l ~/.emacs                                      \
+      -eval '(org-batch-agenda "+shop-NewYork")' | lpr
+#+end_example
+
+#+texinfo: @noindent
+一个显示即时参数修改的示例：
+
+#+begin_example
+emacs -batch -l ~/.emacs                                      \
+   -eval '(org-batch-agenda "a"                               \
+           org-agenda-span (quote month)                      \
+           org-agenda-include-diary nil                       \
+           org-agenda-files (quote ("~/org/project.org")))'   \
+   | lpr
+#+end_example
+
+#+texinfo: @noindent
+这将仅从 =~/org/projects.org= 文件生成未来 30 天的日程。
+
+#+findex: org-batch-agenda-csv
+对于日程输出的结构化处理，请使用 ~org-batch-agenda-csv~，包含以下字段：
+
+- category :: 项目的类别
+- head :: 标题，不含 TODO 关键字、标签和优先级
+- type :: 日程条目的类型，可以是
+
+  | ~todo~              | 在 TODO 匹配中选中              |
+  | ~tagsmatch~         | 在标签匹配中选中                |
+  | ~diary~             | 从日记导入                      |
+  | ~deadline~          | 截止日期                        |
+  | ~scheduled~         | 计划任务                        |
+  | ~timestamp~         | 约会，由时间戳选中              |
+  | ~closed~            | 条目在该日期被关闭              |
+  | ~upcoming-deadline~ | 临近截止日期的警告              |
+  | ~past-scheduled~    | 转发的计划项目                  |
+  | ~block~             | 条目有包含该日期的日期块        |
+
+- todo :: TODO 关键字（如果有）
+- tags :: 所有标签，包括继承的标签，用冒号分隔
+- date :: 相关日期，如 =2007-2-14=
+- time :: 时间，如 =15:00-16:50=
+- extra :: 包含额外计划信息的字符串
+- priority-l :: 优先级字母（如果有）
+- priority-n :: 计算得出的数值优先级
+
+如果日程项目的选择基于时间戳（包括带有 =DEADLINE= 和 =SCHEDULED= 关键字的项目），则 Org 在输出中包含日期和时间。
+
+如果日程项目的选择基于时间戳（或截止日期/计划），则 Org 在输出中包含日期和时间。
+
+以下是 Perl 后处理脚本的示例。它接收 Emacs 的 CSV 输出并用复选框打印：
+
+#+begin_src perl
+#!/usr/bin/perl
+
+# 定义要运行的 Emacs 命令
+$cmd = "emacs -batch -l ~/.emacs -eval '(org-batch-agenda-csv \"t\")'";
+
+# 运行并捕获输出
+$agenda = qx{$cmd 2>/dev/null};
+
+# 遍历所有行
+foreach $line (split(/\n/,$agenda)) {
+    # 获取各个值
+    ($category,$head,$type,$todo,$tags,$date,$time,$extra,
+     $priority_l,$priority_n) = split(/,/,$line);
+    # 处理并打印
+    print "[ ] $head\n";
+}
+#+end_src
+
+** 使用属性 API
+:PROPERTIES:
+:DESCRIPTION: 编写使用条目属性的程序。
+:END:
+#+cindex: API，用于属性
+#+cindex: 属性，API
+
+以下是可用于处理属性的函数描述。
+
+#+attr_texinfo: :options org-entry-properties &optional pom which
+#+begin_defun
+获取 point-or-marker {{{var(POM)}}} 处条目的所有属性。这包括 TODO 关键字、标签、截止日期、计划和时间记录的时间字符串，以及条目中定义的任何其他属性。返回值是一个关联列表。如果属性键被多次使用，键可能会出现多次。{{{var(POM)}}} 也可以是 ~nil~，此时使用当前条目。如果 {{{var(WHICH)}}} 是 ~nil~ 或 ~all~，获取所有属性。如果 {{{var(WHICH)}}} 是 ~special~ 或 ~standard~，仅获取该子类。
+#+end_defun
+
+#+vindex: org-use-property-inheritance
+#+findex: org-insert-property-drawer
+#+attr_texinfo: :options org-entry-get pom property &optional inherit
+#+begin_defun
+获取 point-or-marker {{{var(POM)}}} 处条目的 {{{var(PROPERTY)}}} 的值。默认情况下，这仅查看条目本地定义的属性。如果 {{{var(INHERIT)}}} 非 ~nil~ 且条目没有该属性，则还会检查层级结构的更高层级。如果 {{{var(INHERIT)}}} 是符号 ~selective~，则当且仅当 ~org-use-property-inheritance~ 的设置选择 {{{var(PROPERTY)}}} 进行继承时，才使用继承。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-delete pom property
+#+begin_defun
+从 point-or-marker {{{var(POM)}}} 处的条目中删除属性 {{{var(PROPERTY)}}}。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-put pom property value
+#+begin_defun
+将 point-or-marker POM 处条目的 {{{var(PROPERTY)}}} 设置为 {{{var(VALUES)}}}。
+#+end_defun
+
+#+attr_texinfo: :options org-buffer-property-keys &optional include-specials
+#+begin_defun
+获取当前缓冲区中的所有属性键。
+#+end_defun
+
+#+attr_texinfo: :options org-insert-property-drawer
+#+begin_defun
+为当前条目插入一个属性抽屉。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-put-multivalued-property pom property &rest values
+#+begin_defun
+将 point-or-marker {{{var(POM)}}} 处的 {{{var(PROPERTY)}}} 设置为 {{{var(VALUES)}}}。{{{var(VALUES)}}} 应该是字符串列表。它们以空格作为分隔符进行连接。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-get-multivalued-property pom property
+#+begin_defun
+将属性 {{{var(PROPERTY)}}} 的值视为以空格分隔的值列表，并将值作为字符串列表返回。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-add-to-multivalued-property pom property value
+#+begin_defun
+将属性 {{{var(PROPERTY)}}} 的值视为以空格分隔的值列表，并确保 {{{var(VALUE)}}} 在此列表中。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-remove-from-multivalued-property pom property value
+#+begin_defun
+将属性 {{{var(PROPERTY)}}} 的值视为以空格分隔的值列表，并确保 {{{var(VALUE)}}} /不/ 在此列表中。
+#+end_defun
+
+#+attr_texinfo: :options org-entry-member-in-multivalued-property pom property value
+#+begin_defun
+将属性 {{{var(PROPERTY)}}} 的值视为以空格分隔的值列表，并检查 {{{var(VALUE)}}} 是否在此列表中。
+#+end_defun
+
+#+attr_texinfo: :options org-property-allowed-value-functions
+#+begin_defopt
+为特定属性提供允许值的 hook 函数。函数必须接受一个参数（属性名称），并返回允许值的扁平列表。如果 =:ETC= 是其中一个值，则将值用作补全帮助，但也允许输入其他值。如果函数不负责此属性，则必须返回 ~nil~。
+#+end_defopt
+
+** 使用映射 API
+:PROPERTIES:
+:DESCRIPTION: 映射所有或选定的条目。
+:END:
+#+cindex: API，用于映射
+#+cindex: 映射条目，API
+
+Org 具有复杂的映射功能，可以查找满足特定条件的所有条目。在内部，此功能用于生成日程视图，但也有一个 API 可用于为每个或选定的条目执行任意函数。此 API 的主要入口点是：
+
+#+attr_texinfo: :options org-map-entries func &optional match scope &rest skip
+#+begin_defun
+在 {{{var(SCOPE)}}} 中由 {{{var(MATCH)}}} 选中的每个标题处调用 {{{var(FUNC)}}}。
+
+{{{var(FUNC)}}} 是一个函数或 Lisp 表达式。在光标位于标题开头时，不带参数调用该函数。Org 返回函数调用的返回值列表。
+
+为避免保留光标位置，Org 将 {{{var(FUNC)}}} 的调用包裹在 ~save-excursion~ 形式中。求值后，Org 将光标移动到刚处理的行末尾。搜索从该点继续向前。这在某些条件下可能不会按预期工作，例如当前子树被先前的归档操作删除。在这种罕见的情况下，Org 可能会在不应跳过时跳过下一个条目。要阻止 Org 进行这种跳过，让 {{{var(FUNC)}}} 将变量 ~org-map-continue-from~ 设置为特定的缓冲区位置。
+
+{{{var(MATCH)}}} 是标签/属性/TODO 匹配。Org 仅迭代匹配的标题。当 {{{var(MATCH)}}} 是 ~nil~ 或 ~t~ 时，Org 迭代所有标题。
+
+{{{var(SCOPE)}}} 确定此命令的范围。它可以是以下任意值：
+
+- ~nil~ ::
+
+  当前缓冲区，遵守限制（如果有）。
+
+- ~tree~ ::
+
+  以光标处的条目开始的子树。
+
+- ~region~ ::
+
+  活动区域内的条目（如果有）。
+
+- ~file~ ::
+
+  当前缓冲区，不加限制。
+
+- ~file-with-archives~ ::
+
+  当前缓冲区及与其关联的任何归档文件。
+
+- ~agenda~ ::
+
+  所有日程文件。
+
+- ~agenda-with-archives~ ::
+
+  所有日程文件及与其关联的归档文件。
+
+- 文件名列表 ::
+
+  如果这是一个列表，则扫描列表中的所有文件。
+
+#+texinfo: @noindent
+其余参数作为扫描器跳过功能的设置。有效参数为：
+
+- ~archive~ ::
+
+  跳过带有 =ARCHIVE= 标签的子树。
+
+- ~comment~ ::
+
+  跳过带有 COMMENT 关键字的子树。
+
+- 函数或 Lisp 表达式 ::
+
+  #+vindex: org-agenda-skip-function
+  用作 ~org-agenda-skip-function~ 的值，因此当函数返回 ~t~ 时，为该条目调用 {{{var(FUNC)}}}，搜索从函数留下的位置继续。
+#+end_defun
+
+映射例程可以调用任意函数，甚至是更改元数据或查询属性 API（参见 [[*使用属性 API]]）的函数。以下是一些便捷的函数：
+
+#+attr_texinfo: :options org-todo &optional arg
+#+begin_defun
+更改条目的 TODO 状态。有关参数 {{{var(ARG)}}} 的许多可能值，请参阅函数的文档字符串。
+#+end_defun
+
+#+attr_texinfo: :options org-priority &optional action
+#+begin_defun
+更改条目的优先级。有关 {{{var(ACTION)}}} 的可能值，请参阅此函数的文档字符串。
+#+end_defun
+
+#+attr_texinfo: :options org-toggle-tag tag &optional onoff
+#+begin_defun
+切换当前条目中的标签 {{{var(TAG)}}}。将 {{{var(ONOFF)}}} 设置为 ~on~ 或 ~off~ 不会切换标签，而是确保标签处于开或关状态。
+#+end_defun
+
+#+attr_texinfo: :options org-promote
+#+begin_defun
+提升当前条目。
+#+end_defun
+
+#+attr_texinfo: :options org-demote
+#+begin_defun
+降级当前条目。
+#+end_defun
+
+此示例将所有带有 =TOMORROW= 标签的条目转换为带有 =UPCOMING= 关键字的 TODO 条目。Org 忽略注释子树和归档子树中的条目。
+
+#+begin_src emacs-lisp
+(org-map-entries '(org-todo "UPCOMING")
+                 "+TOMORROW" 'file 'archive 'comment)
+#+end_src
+
+以下示例计算所有日程文件中带有 TODO 关键字 =WAITING= 的条目数量。
+
+#+begin_src emacs-lisp
+(length (org-map-entries t "/+WAITING" 'agenda))
+#+end_src

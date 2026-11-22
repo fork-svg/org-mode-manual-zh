@@ -1,0 +1,130 @@
+* 发布
+
+Org 支持将项目发布为网站或文档集合。
+
+** 发布项目
+
+发布项目定义了一组文件和导出设置：
+
+#+BEGIN_SRC emacs-lisp
+(setq org-publish-project-alist
+      '(("org-notes"
+         :base-directory "~/Documents/org/"
+         :base-extension "org"
+         :publishing-directory "~/public_html/"
+         :publishing-function org-html-publish-to-html
+         :with-section-numbers t
+         :with-toc t
+         :html-head "<link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\"/>"
+         :auto-sitemap t
+         :sitemap-filename "index.org"
+         :sitemap-title "我的笔记")
+
+        ("org-static"
+         :base-directory "~/Documents/org/"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf"
+         :publishing-directory "~/public_html/"
+         :publishing-function org-publish-attachment)
+
+        ("website" :components ("org-notes" "org-static"))))
+#+END_SRC
+
+** 发布命令
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-e P x= | 发布项目 |
+| =C-c C-e P p= | 发布当前文件 |
+| =C-c C-e P f= | 强制发布当前文件 |
+| =C-c C-e P s= | 发布当前项目 |
+| =C-c C-e P S= | 强制发布当前项目 |
+| =C-c C-e P b= | 发布所有项目 |
+| =C-c C-e P B= | 强制发布所有项目 |
+
+** 项目属性
+
+*** 基本属性
+
+- =:base-directory=：源文件目录
+- =:base-extension=：文件扩展名
+- =:publishing-directory=：发布目标目录
+- =:publishing-function=：发布函数
+
+*** 常用发布函数
+
+- =org-html-publish-to-html=：导出为 HTML
+- =org-latex-publish-to-pdf=：导出为 PDF
+- =org-latex-publish-to-latex=：导出为 LaTeX
+- =org-publish-attachment=：复制附件文件
+
+*** 内容属性
+
+- =:with-toc=：是否生成目录
+- =:section-numbers=：是否编号
+- =:with-author=：是否包含作者
+- =:html-head=：自定义 HTML head
+
+*** 站点地图
+
+- =:auto-sitemap=：自动生成站点地图
+- =:sitemap-filename=：站点地图文件名
+- =:sitemap-title=：站点地图标题
+- =:sitemap-sort-folders=：文件夹排序方式
+
+** 示例：简单网站
+
+#+BEGIN_SRC emacs-lisp
+(setq org-publish-project-alist
+      '(("blog"
+         :base-directory "~/blog/"
+         :publishing-directory "~/public_html/"
+         :recursive t
+         :publishing-function org-html-publish-to-html
+         :html-head "<link rel=\"stylesheet\" href=\"/css/style.css\" type=\"text/css\"/>"
+         :html-postamble nil
+         :auto-sitemap t
+         :sitemap-title "我的博客"
+         :sitemap-sort-folders last)))
+#+END_SRC
+
+** 示例：复杂项目
+
+#+BEGIN_SRC emacs-lisp
+(setq org-publish-project-alist
+      '(("org-content"
+         :base-directory "~/projects/docs/"
+         :base-extension "org"
+         :publishing-directory "~/projects/public/"
+         :publishing-function org-html-publish-to-html
+         :with-toc t
+         :html-head "<link rel=\"stylesheet\" href=\"css/main.css\" type=\"text/css\"/>")
+
+        ("org-images"
+         :base-directory "~/projects/docs/images/"
+         :base-extension "jpg\\|png\\|gif\\|svg"
+         :publishing-directory "~/projects/public/images/"
+         :publishing-function org-publish-attachment)
+
+        ("org-css"
+         :base-directory "~/projects/docs/css/"
+         :base-extension "css"
+         :publishing-directory "~/projects/public/css/"
+         :publishing-function org-publish-attachment)
+
+        ("docs" :components ("org-content" "org-images" "org-css"))))
+#+END_SRC
+
+** 同步
+
+发布时使用 Rsync 同步：
+
+#+BEGIN_SRC emacs-lisp
+(setq org-publish-project-alist
+      '(("remote"
+         :base-directory "~/docs/"
+         :publishing-function org-html-publish-to-html
+         :publishing-function (lambda (plist filename)
+                                (let ((html (org-html-publish-to-html plist filename)))
+                                  (call-process "rsync" nil nil nil "-avz"
+                                                html "user@server:/var/www/")))))))
+#+END_SRC

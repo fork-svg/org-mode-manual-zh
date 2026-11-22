@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>处理源代码 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>处理源代码</h1>
+
+<p>这里的源代码指的是任何用人类可读的编程语言编写的纯文本计算机指令集合，可能包含注释。当源代码用开始和结束标记标识时，Org 可以在 Org 文档中管理源代码。</p>
+
+<p>源代码块可以放在 Org 文档的几乎任何位置；不限于前言或文档末尾。但是，如果源代码块放置在 Org 注释内或固定宽度区域内，Org 无法管理它。</p>
+
+<h2>功能概览</h2>
+
+<p>Org 模式为处理源代码提供了以下主要功能：</p>
+
+<p>1. <strong>编辑</strong> — 在专用编辑缓冲区中编辑源代码块</p>
+<p>2. <strong>语法高亮</strong> — 在 Org 缓冲区中按语言语法高亮显示源代码</p>
+<p>3. <strong>导出</strong> — 将源代码块导出为各种文档格式</p>
+<p>4. <strong>代码编织（Weaving）</strong> — 提取文档中的源代码</p>
+<p>5. <strong>代码纠缠（Tangling）</strong> — 从文档中提取可执行的源代码文件</p>
+<p>6. <strong>代码评估（Evaluation）</strong> — 在 Org 中直接执行源代码块</p>
+<p>7. <strong>Noweb 引用</strong> — 使用命名代码块构建更大的程序</p>
+
+<h2>代码块结构</h2>
+
+<p>代码块使用 <code>BEGIN<u>SRC</code> 和 <code>END</u>SRC</code> 关键字标记。基本结构如下：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC 语言
+源代码...
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<p>例如，一个 Emacs Lisp 代码块：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC emacs-lisp
+(defun org-xor (a b)
+  &quot;Exclusive or.&quot;
+  (if a (not b) b))
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<p>代码块还可以包含可选的名称和参数：</p>
+
+<pre class="code-block code-example"><code>#+NAME: my-code
+#+BEGIN_SRC python :results output
+print(&quot;Hello, World!&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>代码块参数</h3>
+
+<p>代码块可以接受多种头部参数（header arguments）来控制其行为：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :var x=1 :results output :exports both
+print(f&quot;x = {x}&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<p>常用参数：</p>
+
+<table class="org-table">
+<tr><td>参数</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>:var</code></td><td>传递变量到代码块</td></tr>
+<tr><td><code>:results</code></td><td>控制结果处理方式（<code>output</code>, <code>value</code>, <code>none</code> 等）</td></tr>
+<tr><td><code>:exports</code></td><td>控制导出内容（<code>code</code>, <code>results</code>, <code>both</code>, <code>none</code>）</td></tr>
+<tr><td><code>:dir</code></td><td>设置代码块执行目录</td></tr>
+<tr><td><code>:session</code></td><td>在持久会话中执行代码</td></tr>
+<tr><td><code>:tangle</code></td><td>控制是否纠缠到文件</td></tr>
+<tr><td><code>:noweb</code></td><td>启用 noweb 引用替换</td></tr>
+<tr><td><code>:eval</code></td><td>控制是否允许评估</td></tr>
+</tbody></table>
+
+<h2>头部参数</h2>
+
+<p>头部参数可以在多个层级设置，按优先级从低到高排列：</p>
+
+<p>1. 系统范围的默认值（通过 <code>org-babel-default-header-args</code>）</p>
+<p>2. 文件中通过 <code>#+PROPERTY:</code> 设置</p>
+<p>3. 标题的 <code>header-args</code> 属性</p>
+<p>4. 代码块自身的参数</p>
+
+<h3>全局设置</h3>
+
+<pre class="code-block code-example"><code>#+PROPERTY: header-args:python :results output :exports both
+</code></pre>
+
+<h3>按标题设置</h3>
+
+<pre class="code-block code-example"><code>* 数据分析
+  :PROPERTIES:
+  :header-args:python: :session data-analysis :results output
+  :END:
+
+** 加载数据
+
+#+BEGIN_SRC python
+import pandas as pd
+df = pd.read_csv(&quot;data.csv&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>代码块环境</h2>
+
+<p>代码块执行时有其运行环境，包括：</p>
+
+<ul>
+<li>工作目录</li>
+<li>环境变量</li>
+<li>会话状态</li>
+<li>前置和后置代码</li>
+</ul>
+
+<h3>工作目录</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :dir /tmp/work
+import os
+print(os.getcwd())
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>会话</h3>
+
+<p>使用 <code>:session</code> 参数可以在持久会话中执行代码块，保持变量和状态：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :session my-session :results output
+x = 10
+y = 20
+</code></pre>
+
+<pre class="code-block code-src"><code>print(x + y)  # 输出: 30
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>评估代码块</h2>
+
+<p>代码块可以通过以下方式评估：</p>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-c</code></td><td>评估当前代码块</td></tr>
+<tr><td><code>C-c C-v C-e</code></td><td>评估当前代码块（替代方式）</td></tr>
+<tr><td><code>C-c C-v b</code></td><td>评估缓冲区中所有代码块</td></tr>
+<tr><td><code>C-c C-v s</code></td><td>评估同一子树中的所有代码块</td></tr>
+<tr><td><code>C-c C-v f</code></td><td>评估当前文件中的所有代码块</td></tr>
+</tbody></table>
+
+<h3>评估选项</h3>
+
+<p>可以使用 <code>:eval</code> 参数控制评估行为：</p>
+
+<ul>
+<li><code>:eval yes</code> — 始终允许评估</li>
+<li><code>:eval no</code> — 禁止评估</li>
+<li><code>:eval never</code> — 永远不评估</li>
+<li><code>:eval query</code> — 每次评估前询问</li>
+<li><code>:eval never-export</code> — 导出时不评估</li>
+</ul>
+
+<h3>安全设置</h3>
+
+<p>评估代码块可能涉及安全风险。Org 提供了多层安全控制：</p>
+
+<pre class="code-block code-src"><code>;; 允许特定语言的评估
+(setq org-babel-do-load-languages
+      'org-babel-load-languages
+      '((emacs-lisp . t)
+        (python . t)
+        (shell . t)
+        (R . t)
+        (sql . t)
+        (dot . t)))
+
+;; 全局安全策略
+(setq org-confirm-babel-evaluate t)  ;; 评估前确认
+</code></pre>
+
+<h2>评估结果</h2>
+
+<p>代码块评估结果通过 <code>:results</code> 参数控制。</p>
+
+<h3>结果类型</h3>
+
+<table class="org-table">
+<tr><td>结果类型</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>value</code></td><td>返回代码的返回值（默认）</td></tr>
+<tr><td><code>output</code></td><td>返回代码的标准输出</td></tr>
+<tr><td><code>none</code></td><td>丢弃结果</td></tr>
+</tbody></table>
+
+<h3>结果处理</h3>
+
+<table class="org-table">
+<tr><td>处理方式</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>table</code></td><td>将结果格式化为 Org 表格</td></tr>
+<tr><td><code>list</code></td><td>将结果格式化为 Org 列表</td></tr>
+<tr><td><code>raw</code></td><td>将结果作为原始 Org 文本插入</td></tr>
+<tr><td><code>html</code></td><td>将结果作为 HTML 块插入</td></tr>
+<tr><td><code>latex</code></td><td>将结果作为 LaTeX 块插入</td></tr>
+<tr><td><code>org</code></td><td>将结果作为 Org 块插入</td></tr>
+<tr><td><code>file</code></td><td>将结果保存为文件，插入文件链接</td></tr>
+</tbody></table>
+
+<h3>实用示例：生成表格</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :results table
+data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+return data
+</code></pre>
+
+<p>#+RESULTS:</p>
+<table class="org-table">
+<tr><td>1</td><td>2</td><td>3</td></tr>
+<tr><td>4</td><td>5</td><td>6</td></tr>
+<tr><td>7</td><td>8</td><td>9</td></tr>
+</tbody></table>
+<p>#+END_EXAMPLE</p>
+
+<h3>实用示例：生成文件（图形）</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :results file :exports both
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.savefig(&quot;plot.png&quot;)
+return &quot;plot.png&quot;
+</code></pre>
+
+<p>#+RESULTS:</p>
+<p><a href="file:plot.png">file:plot.png</a></p>
+<p>#+END_EXAMPLE</p>
+
+<h2>导出代码块</h2>
+
+<p>代码块的导出行为通过 <code>:exports</code> 参数控制：</p>
+
+<table class="org-table">
+<tr><td>值</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>code</code></td><td>只导出代码（默认）</td></tr>
+<tr><td><code>results</code></td><td>只导出结果</td></tr>
+<tr><td><code>both</code></td><td>同时导出代码和结果</td></tr>
+<tr><td><code>none</code></td><td>都不导出</td></tr>
+</tbody></table>
+
+<h3>导出到 LaTeX</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :exports both :results output
+print(&quot;Hello from Python!&quot;)
+</code></pre>
+
+<p>#+RESULTS:</p>
+<p>: Hello from Python!</p>
+<p>#+END_EXAMPLE</p>
+
+<h3>导出到 HTML</h3>
+
+<p>代码块导出到 HTML 时，会根据语言应用语法高亮。使用 <code>org-src-preserve-indentation</code> 控制缩进。</p>
+
+<h2>提取源代码（Tangling）</h2>
+
+<p>Tangling 是从 Org 文档中提取源代码到外部文件的过程。这是"文学编程"（Literate Programming）的核心功能。</p>
+
+<h3>基本纠缠</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :tangle hello.py
+print(&quot;Hello, World!&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<p>执行 <code>C-c C-v t</code>（<code>org-babel-tangle</code>）会创建 <code>hello.py</code> 文件。</p>
+
+<h3>纠缠参数</h3>
+
+<table class="org-table">
+<tr><td>参数</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>:tangle yes</code></td><td>纠缠到与 Org 文件同名的文件（加语言扩展名）</td></tr>
+<tr><td><code>:tangle no</code></td><td>不纠缠（默认）</td></tr>
+<tr><td><code>:tangle filename</code></td><td>纠缠到指定文件名</td></tr>
+<tr><td><code>:mkdirp yes</code></td><td>创建父目录（如需要）</td></tr>
+<tr><td><code>:comments</code></td><td>在纠缠输出中包含注释</td></tr>
+</tbody></table>
+
+<h3>纠缠命令</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-v t</code></td><td>纠缠当前缓冲区</td></tr>
+<tr><td><code>C-c C-v f</code></td><td>纠缠当前文件</td></tr>
+<tr><td><code>C-c C-v g</code></td><td>纠缠项目中的所有文件</td></tr>
+</tbody></table>
+
+<h3>文学编程示例</h3>
+
+<p>通过 noweb 引用，可以将大程序拆分为多个有意义的代码块：</p>
+
+<pre class="code-block code-example"><code>* 数据处理程序
+
+** 导入库
+
+#+NAME: imports
+#+BEGIN_SRC python
+import numpy as np
+import pandas as pd
+</code></pre>
+
+<h2>数据加载</h2>
+
+<p>#+NAME: load-data</p>
+<pre class="code-block code-src"><code>df = pd.read_csv(&quot;data.csv&quot;)
+df = df.dropna()
+</code></pre>
+
+<h2>分析</h2>
+
+<p>#+NAME: analysis</p>
+<pre class="code-block code-src"><code>result = df.groupby(&quot;category&quot;).mean()
+</code></pre>
+
+<h2>完整程序</h2>
+
+<pre class="code-block code-src"><code>&lt;&lt;imports&gt;&gt;
+&lt;&lt;load-data&gt;&gt;
+&lt;&lt;analysis&gt;&gt;
+print(result)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>语言支持</h2>
+
+<p>Org Babel 支持多种编程语言。以下是常用语言的配置：</p>
+
+<h3>启用语言</h3>
+
+<pre class="code-block code-src"><code>(setq org-babel-load-languages
+      '((emacs-lisp . t)
+        (python . t)
+        (shell . t)
+        (R . t)
+        (ruby . t)
+        (js . t)
+        (sql . t)
+        (dot . t)
+        (ditaa . t)
+        (plantuml . t)
+        (C . t)
+        (calc . t)))
+</code></pre>
+
+<h3>Python</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :results output
+import sys
+print(f&quot;Python version: {sys.version}&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>Emacs Lisp</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC emacs-lisp :results value
+(+ 1 2 3 4 5)
+</code></pre>
+
+<p>#+RESULTS:</p>
+<p>: 15</p>
+<p>#+END_EXAMPLE</p>
+
+<h3>Shell</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC sh :results output
+echo &quot;Hello from shell&quot;
+date
+ls -la
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>R</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC R :results output
+summary(mtcars$mpg)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>SQL</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC sql :dbengine postgresql :database mydb
+SELECT * FROM users WHERE age &gt; 30;
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>Graphviz (dot)</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC dot :file graph.png :results file
+digraph G {
+  A -&gt; B -&gt; C;
+  B -&gt; D;
+}
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>PlantUML</h3>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC plantuml :file diagram.png :results file
+@startuml
+Alice -&gt; Bob: Hello
+Bob -&gt; Alice: Hi!
+@enduml
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>编辑源代码</h2>
+
+<p>Org 提供了专用的源代码编辑模式，可以在专用缓冲区中编辑代码块。</p>
+
+<h3>编辑命令</h3>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c '</code></td><td>打开专用编辑缓冲区</td></tr>
+<tr><td><code>C-c C-c</code></td><td>在编辑缓冲区中确认并返回 Org</td></tr>
+</tbody></table>
+
+<h3>编辑缓冲区</h3>
+
+<p>按 <code>C-c '</code> 时，Org 会打开一个使用对应语言主要模式的缓冲区。编辑完成后按 <code>C-c C-c</code> 返回 Org 缓冲区。</p>
+
+<p>编辑缓冲区行为可通过以下方式配置：</p>
+
+<pre class="code-block code-src"><code>;; 编辑时不要分割窗口
+(setq org-src-window-setup 'current-window)
+
+;; 保留源代码缩进
+(setq org-src-preserve-indentation t)
+
+;; 退出编辑缓冲区时自动 tangled
+(setq org-src-ask-before-returning-to-edit-buffer nil)
+</code></pre>
+
+<h2>Noweb 引用语法</h2>
+
+<p>Noweb 引用允许您在一个代码块中引用另一个代码块。使用 <code><<名称>></code> 语法引用命名代码块。</p>
+
+<pre class="code-block code-example"><code>#+NAME: setup
+#+BEGIN_SRC python
+import os
+</code></pre>
+
+<p>#+NAME: main</p>
+<pre class="code-block code-src"><code>&lt;&lt;setup&gt;&gt;
+def main():
+    print(os.getcwd())
+
+main()
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>Noweb 参数</h3>
+
+<ul>
+<li><code>:noweb yes</code> — 启用 noweb 替换</li>
+<li><code>:noweb no</code> — 禁用 noweb 替换</li>
+<li><code>:noweb eval</code> — 仅在评估时替换</li>
+<li><code>:noweb strip-export</code> — 替换但在导出时去掉 noweb 标记</li>
+<li><code>:noweb-ref</code> — 设置默认 noweb 引用名称</li>
+</ul>
+
+<h3>Noweb 示例：构建配置文件</h3>
+
+<pre class="code-block code-example"><code>#+NAME: db-config
+#+BEGIN_SRC conf
+database_host = localhost
+database_port = 5432
+database_name = myapp
+</code></pre>
+
+<p>#+NAME: app-config</p>
+<pre class="code-block code-src"><code>app_name = MyApp
+app_port = 8080
+debug = true
+</code></pre>
+
+<pre class="code-block code-src"><code># 数据库配置
+&lt;&lt;db-config&gt;&gt;
+
+# 应用配置
+&lt;&lt;app-config&gt;&gt;
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h2>Babel 代码库</h2>
+
+<p>Org Babel 代码库（Library of Babel）是一个共享的代码块集合，可以在任何 Org 文件中调用。</p>
+
+<h3>加载代码库</h3>
+
+<pre class="code-block code-src"><code>;; 加载 Babel 代码库
+(org-babel-lob-ingest &quot;library-of-babel.org&quot;)
+</code></pre>
+
+<h3>使用代码库中的函数</h3>
+
+<p>代码库中的函数通过 <code>call-</code> 语法调用：</p>
+
+<pre class="code-block code-example"><code>#+BEGIN_SRC python :var x=5
+return x * x
+</code></pre>
+
+<p># 调用上面的代码块：</p>
+<p>#+CALL: my-block(x=10)</p>
+<p>#+END_EXAMPLE</p>
+
+<h2>常用命令和函数</h2>
+
+<table class="org-table">
+<tr><td>快捷键</td><td>函数</td><td>功能</td></tr>
+</thead><tbody>
+<tr><td><code>C-c C-c</code></td><td><code>org-ctrl-c-ctrl-c</code></td><td>评估当前代码块</td></tr>
+<tr><td><code>C-c '</code></td><td><code>org-edit-src-code</code></td><td>编辑代码块</td></tr>
+<tr><td><code>C-c C-v t</code></td><td><code>org-babel-tangle</code></td><td>纠缠当前文件</td></tr>
+<tr><td><code>C-c C-v f</code></td><td><code>org-babel-tangle-file</code></td><td>纠缠到文件</td></tr>
+<tr><td><code>C-c C-v e</code></td><td><code>org-babel-execute-src-block</code></td><td>执行当前代码块</td></tr>
+<tr><td><code>C-c C-v b</code></td><td><code>org-babel-execute-buffer</code></td><td>执行缓冲区所有代码块</td></tr>
+<tr><td><code>C-c C-v s</code></td><td><code>org-babel-execute-subtree</code></td><td>执行子树所有代码块</td></tr>
+<tr><td><code>C-c C-v g</code></td><td><code>org-babel-sha-tangle</code></td><td>纠缠整个项目</td></tr>
+<tr><td><code>C-c C-v x</code></td><td><code>org-babel-mark-block</code></td><td>标记当前代码块</td></tr>
+<tr><td><code>C-c C-v z</code></td><td><code>org-babel-switch-to-session</code></td><td>切换到会话</td></tr>
+<tr><td><code>C-c C-v a</code></td><td><code>org-babel-sha-tangle</code></td><td>纠缠所有</td></tr>
+<tr><td><code>C-c C-v i</code></td><td><code>org-babel-view-info/hydra</code></td><td>查看代码块信息</td></tr>
+<tr><td><code>C-c C-v p</code></td><td><code>org-babel-previous-src-block</code></td><td>上一个代码块</td></tr>
+<tr><td><code>C-c C-v n</code></td><td><code>org-babel-next-src-block</code></td><td>下一个代码块</td></tr>
+</tbody></table>
+
+<h2>批量执行</h2>
+
+<p>可以使用 Emacs 脚本批量执行 Org 文件中的代码块：</p>
+
+<pre class="code-block code-example"><code>emacs --batch file.org \
+      --eval '(org-babel-execute-buffer)' \
+      --eval '(org-babel-tangle)'
+</code></pre>
+
+<p>或者使用 <code>org-babel-do-in-current-buffer</code> 进行更精细的控制：</p>
+
+<pre class="code-block code-src"><code>;; 批量处理多个 Org 文件
+(dolist (file (directory-files &quot;/path/to/org/&quot; t &quot;\\.org$&quot;))
+  (with-current-buffer (find-file-noselect file)
+    (org-babel-execute-buffer)
+    (save-buffer)))
+</code></pre>
+
+<h3>使用 Make 或 CI/CD</h3>
+
+<p>可以在 Makefile 中使用 Org Babel：</p>
+
+<pre class="code-block code-example"><code># Makefile
+%.html: %.org
+	emacs --batch $&lt; --eval '(org-html-export-to-html)'
+
+%.pdf: %.org
+	emacs --batch $&lt; --eval '(org-latex-export-to-pdf)'
+
+tangle:
+	emacs --batch main.org --eval '(org-babel-tangle)'
+
+test: tangle
+	python tests.py
+</code></pre>
+
+<h2>实用工作流示例</h2>
+
+<h3>数据科学工作流</h3>
+
+<pre class="code-block code-example"><code>#+TITLE: 数据分析报告
+#+AUTHOR: 张三
+#+DATE: 2024-01-15
+
+* 数据探索
+
+#+BEGIN_SRC python :session analysis :results output
+import pandas as pd
+import numpy as np
+
+# 加载数据
+df = pd.read_csv(&quot;sales_data.csv&quot;)
+print(df.describe())
+</code></pre>
+
+<pre class="code-block code-src"><code>import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(10, 6))
+df.groupby(&quot;month&quot;)[&quot;revenue&quot;].sum().plot(kind=&quot;bar&quot;, ax=ax)
+ax.set_title(&quot;月度收入&quot;)
+ax.set_ylabel(&quot;收入（万元）&quot;)
+plt.tight_layout()
+plt.savefig(&quot;monthly_revenue.png&quot;, dpi=150)
+return &quot;monthly_revenue.png&quot;
+</code></pre>
+
+<h1>统计建模</h1>
+
+<pre class="code-block code-src"><code>from scipy import stats
+
+# t 检验
+group_a = df[df[&quot;group&quot;] == &quot;A&quot;][&quot;revenue&quot;]
+group_b = df[df[&quot;group&quot;] == &quot;B&quot;][&quot;revenue&quot;]
+t_stat, p_value = stats.ttest_ind(group_a, group_b)
+print(f&quot;t = {t_stat:.3f}, p = {p_value:.3f}&quot;)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>Web 开发工作流</h3>
+
+<pre class="code-block code-example"><code>* API 服务器
+
+#+NAME: server-imports
+#+BEGIN_SRC python :tangle server.py
+from flask import Flask, jsonify
+import sqlite3
+</code></pre>
+
+<p>#+NAME: server-setup</p>
+<pre class="code-block code-src"><code>app = Flask(__name__)
+
+def get_db():
+    conn = sqlite3.connect(&quot;app.db&quot;)
+    return conn
+</code></pre>
+
+<p>#+NAME: server-routes</p>
+<pre class="code-block code-src"><code>@app.route(&quot;/api/users&quot;)
+def get_users():
+    db = get_db()
+    users = db.execute(&quot;SELECT * FROM users&quot;).fetchall()
+    return jsonify([dict(u) for u in users])
+</code></pre>
+
+<p>#+NAME: server-main</p>
+<pre class="code-block code-src"><code>if __name__ == &quot;__main__&quot;:
+    app.run(debug=True, port=5000)
+</code></pre>
+<p>#+END_EXAMPLE</p>
+
+<h3>系统管理工作流</h3>
+
+<pre class="code-block code-example"><code>* 服务器配置
+
+#+BEGIN_SRC sh :tangle deploy.sh :tangle-mode (executable)
+#!/bin/bash
+set -e
+
+# 更新系统
+sudo apt-get update &amp;&amp; sudo apt-get upgrade -y
+
+# 安装依赖
+sudo apt-get install -y nginx postgresql redis-server
+
+# 配置 Nginx
+sudo systemctl restart nginx
+echo &quot;部署完成&quot;
+</code></pre>
+
+<pre class="code-block code-src"><code># 检查服务状态
+systemctl status nginx
+systemctl status postgresql
+systemctl status redis-server
+</code></pre>
+<p>#+END_EXAMPLE</p>
+        </main>
+    </div>
+</body>
+</html>

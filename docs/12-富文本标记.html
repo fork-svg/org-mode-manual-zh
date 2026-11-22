@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富文本标记 - Org 模式手册</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">← 返回首页</a>
+        </nav>
+        <main class="content">
+<h1>富文本标记</h1>
+
+<p>Org 支持多种文本标记格式。</p>
+
+<h2>基本标记</h2>
+
+<table class="org-table">
+<tr><td>标记</td><td>效果</td><td>说明</td></tr>
+</thead><tbody>
+<tr><td><code><strong>粗体</strong></code></td><td><strong>粗体</strong></td><td>用星号包裹</td></tr>
+<tr><td><code><em>斜体</em></code></td><td><em>斜体</em></td><td>用斜杠包裹</td></tr>
+<tr><td><code><u>下划线</u></code></td><td><u>下划线</u></td><td>用下划线包裹</td></tr>
+<tr><td><code><del>删除线</del></code></td><td><del>删除线</del></td><td>用加号包裹</td></tr>
+<tr><td>=<code>代码</code>=</td><td><code>代码</code></td><td>用等号包裹</td></tr>
+<tr><td><code><code>源码</code></code></td><td><code>源码</code></td><td>用波浪号包裹</td></tr>
+</tbody></table>
+
+<h2>组合标记</h2>
+
+<p>可以组合使用：</p>
+
+<pre class="code-block code-example"><code>*/粗斜体/*
+_+下划线加删除线+_
+</code></pre>
+
+<h2>上标和下标</h2>
+
+<pre class="code-block code-example"><code>H_2O 是水分子
+E=mc^2 是爱因斯坦方程
+a^{b}_{c} 复杂上下标
+</code></pre>
+
+<h2>特殊字符</h2>
+
+<ul>
+<li>=\--- 破折号</li>
+<li><code>\...</code> 省略号</li>
+<li><code>\-</code> 软换行</li>
+<li><code>\%</code> 注释</li>
+</ul>
+
+<h2>实体</h2>
+
+<p>使用 LaTeX 风格的实体：</p>
+
+<ul>
+<li><code>\alpha</code> → α</li>
+<li><code>\beta</code> → β</li>
+<li><code>\gamma</code> → γ</li>
+<li><code>\pi</code> → π</li>
+<li><code>\infty</code> → ∞</li>
+<li><code>\to</code> → →</li>
+<li><code>\Rightarrow</code> → ⇒</li>
+<li><code>\Leftarrow</code> → ⇐</li>
+</ul>
+
+<h2>宏</h2>
+
+<p>定义可复用的文本：</p>
+
+<pre class="code-block code-example"><code>#+MACRO: version 9.8
+#+MACRO: date 2024-01-15
+
+当前版本: {{{version}}}
+日期: {{{date}}}
+</code></pre>
+        </main>
+    </div>
+</body>
+</html>

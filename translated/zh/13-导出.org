@@ -1,0 +1,125 @@
+* 导出
+
+Org 可以将文档导出为多种格式。
+
+** 导出命令
+
+| 快捷键 | 功能 |
+|--------+------|
+| =C-c C-e= | 导出命令前缀 |
+| =C-c C-e h h= | 导出为 HTML |
+| =C-c C-e H H= | 导出为 HTML 并打开 |
+| =C-c C-e l l= | 导出为 LaTeX |
+| =C-c C-e l p= | 导出为 PDF 并打开 |
+| =C-c C-e m m= | 导出为 Markdown |
+| =C-c C-e o o= | 导出为 ODT |
+| =C-c C-e t t= | 导出为 Texinfo |
+| =C-c C-e i i= | 导出为 iCalendar |
+| =C-c C-e a a= | 导出为 ASCII |
+
+** 导出选项
+
+在文件开头设置导出选项：
+
+#+BEGIN_EXAMPLE
+#+TITLE: 文档标题
+#+AUTHOR: 作者姓名
+#+DATE: 2024-01-15
+#+EMAIL: user@example.com
+#+DESCRIPTION: 文档描述
+#+KEYWORDS: 关键词1, 关键词2
+#+LANGUAGE: zh
+#+OPTIONS: toc:t num:t ::t
+#+END_EXAMPLE
+
+** 导出设置
+
+*** 目录
+
+#+BEGIN_EXAMPLE
+#+OPTIONS: toc:nil        # 不生成目录
+#+OPTIONS: toc:t          # 生成目录（默认）
+#+OPTIONS: toc:3          # 目录深度为 3 级
+#+END_EXAMPLE
+
+*** 编号
+
+#+BEGIN_EXAMPLE
+#+OPTIONS: num:t          # 章节编号
+#+OPTIONS: num:nil        # 不编号
+#+OPTIONS: num:3          # 只编号到 3 级
+#+END_EXAMPLE
+
+*** 其他选项
+
+#+BEGIN_EXAMPLE
+#+OPTIONS: author:t       # 包含作者
+#+OPTIONS: creator:t      # 包含创建者信息
+#+OPTIONS: email:t        # 包含邮箱
+#+OPTIONS: timestamp:t    # 包含时间戳
+#+OPTIONS: ^:t            # 支持上下标
+#+OPTIONS: \n:t           # 保留换行
+#+END_EXAMPLE
+
+** HTML 导出
+
+*** 自定义 CSS
+
+#+BEGIN_EXAMPLE
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
+#+END_EXAMPLE
+
+*** 自定义 HTML
+
+#+BEGIN_EXAMPLE
+#+BEGIN_EXPORT html
+<div class="custom">
+  <p>自定义 HTML 内容</p>
+</div>
+#+END_EXPORT
+#+END_EXAMPLE
+
+** LaTeX 导出
+
+*** 文档类
+
+#+BEGIN_EXAMPLE
+#+LATEX_CLASS: article
+#+LATEX_CLASS: report
+#+LATEX_CLASS: book
+#+END_EXAMPLE
+
+*** 自定义 LaTeX
+
+#+BEGIN_EXAMPLE
+#+LATEX_HEADER: \usepackage{xeCJK}
+#+LATEX_HEADER: \setCJKmainfont{Noto Serif CJK SC}
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+#+BEGIN_EXPORT latex
+\begin{center}
+自定义 LaTeX 内容
+\end{center}
+#+END_EXPORT
+#+END_EXAMPLE
+
+** Markdown 导出
+
+Org 可以导出为 Markdown 格式，便于在其他平台使用。
+
+** Beamer 导出
+
+导出为 Beamer 幻灯片：
+
+#+BEGIN_EXAMPLE
+#+LATEX_CLASS: beamer
+#+BEAMER_THEME: Madrid
+#+OPTIONS: H:2
+
+* 第一张幻灯片
+** 要点一
+** 要点二
+
+* 第二张幻灯片
+#+END_EXAMPLE

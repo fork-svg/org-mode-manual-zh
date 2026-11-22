@@ -1327,8 +1327,29 @@ Document Format for Office Applications (OpenDocument) Version 1.2.
 ================================================================================
 SECTION 13: Org Export
 URL: https://orgmode.org/manual/Org-Export.html
-STATUS: FAILED TO FETCH
 ================================================================================
+
+Org Export (The Org Manual)
+
+Next: Texinfo Export, Previous: OpenDocument Text Export, Up: Exporting   [Contents][Index]
+
+13.13 Org Export ¶
+
+org export backend creates a normalized version of the Org document
+in current buffer.  The exporter evaluates Babel code (see Evaluating Code Blocks) and removes content specific to other backends.
+
+Org export commands ¶
+
+C-c C-e O o (
+org-org-export-to-org
+) ¶
+
+Export as an Org file with a ‘.org’ extension.  For ‘myfile.org’,
+Org exports to ‘myfile.org.org’, overwriting without warning.
+
+C-c C-e O v (~~) ¶
+
+Export to an Org file, then open it.
 
 
 ================================================================================
