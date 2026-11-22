@@ -1,0 +1,66 @@
+* 简介
+
+Org 是一个用于笔记记录和 TODO 列表管理的工具，基于 GNU Emacs。
+
+** 概述
+
+Org 模式是一个纯文本的大纲模式，用于笔记记录、TODO 列表管理和项目规划。
+
+Org 起源于 2003 年，最初只是一个简单的 TODO 列表管理器。随着时间推移，它发展成为一个功能强大的工具，可以：
+
+- 快速有效地捕获信息
+- 使用层级标题组织数据
+- 搜索和排序数据
+- 将 TODO 项目设置为不同的状态并添加注释
+- 计算统计信息
+- 管理日程安排
+
+** 安装
+
+*** 使用 Emacs 包管理系统
+
+从 Emacs 22.1 开始，Org 模式包含在 Emacs 中。但是，如果您想使用最新版本，建议从 ELPA 安装。
+
+使用内置的 package.el：
+
+#+BEGIN_EXAMPLE
+M-x list-packages RET
+#+END_EXAMPLE
+
+找到 =org= 并安装它。
+
+或者使用 =use-package=：
+
+#+BEGIN_SRC emacs-lisp
+(use-package org
+  :ensure t)
+#+END_SRC
+
+*** 使用 Org 的 Git 仓库
+
+要获取最新的开发版本：
+
+#+BEGIN_EXAMPLE
+git clone https://git.sr.ht/~bzg/org-mode
+#+END_EXAMPLE
+
+** 激活
+
+要在 Emacs 中激活 Org 模式，将以下代码添加到您的 Emacs 配置文件中：
+
+#+BEGIN_SRC emacs-lisp
+;; 设置 Org 模式的快捷键
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c c") #'org-capture)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c b") #'org-switchb)
+#+END_SRC
+
+Org 模式默认对 =.org= 文件生效。
+
+** 反馈
+
+如果您发现问题或有建议，欢迎通过以下方式反馈：
+
+- 邮件列表：[[mailto:emacs-orgmode@gnu.org][emacs-orgmode@gnu.org]]
+- 问题追踪：https://orgmode.org/worg/org-contribute.html
